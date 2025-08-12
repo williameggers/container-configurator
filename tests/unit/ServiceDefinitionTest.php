@@ -1,103 +1,105 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\InvalidConfigException;
 use TomPHP\ContainerConfigurator\ServiceDefinition;
 
-final class ServiceDefinitionTest extends PHPUnit_Framework_TestCase
+final class ServiceDefinitionTest extends TestCase
 {
-    public function testItCreatesFromConfig()
+    public function testItCreatesFromConfig(): void
     {
         $config = [
-            'class'     => __CLASS__,
+            'class'     => self::class,
             'singleton' => false,
             'arguments' => ['argument1', 'argument2'],
             'methods'   => ['setSomething' => ['value']],
         ];
 
-        $definition = new ServiceDefinition('service_name', $config);
+        $serviceDefinition = new ServiceDefinition('service_name', $config);
 
-        assertEquals('service_name', $definition->getName());
-        assertEquals(__CLASS__, $definition->getClass());
-        assertFalse($definition->isFactory());
-        assertFalse($definition->isSingleton());
-        assertEquals(['argument1', 'argument2'], $definition->getArguments());
-        assertEquals(['setSomething' => ['value']], $definition->getMethods());
+        $this->assertSame('service_name', $serviceDefinition->getName());
+        $this->assertSame(self::class, $serviceDefinition->getClass());
+        $this->assertFalse($serviceDefinition->isFactory());
+        $this->assertFalse($serviceDefinition->isSingleton());
+        $this->assertSame(['argument1', 'argument2'], $serviceDefinition->getArguments());
+        $this->assertSame(['setSomething' => ['value']], $serviceDefinition->getMethods());
     }
 
-    public function testClassDefaultsToKey()
+    public function testClassDefaultsToKey(): void
     {
-        $definition = new ServiceDefinition('service_name', []);
+        $serviceDefinition = new ServiceDefinition('service_name', []);
 
-        assertEquals('service_name', $definition->getClass());
+        $this->assertSame('service_name', $serviceDefinition->getClass());
     }
 
-    public function testSingletonDefaultsToFalse()
+    public function testSingletonDefaultsToFalse(): void
     {
-        $definition = new ServiceDefinition('service_name', []);
+        $serviceDefinition = new ServiceDefinition('service_name', []);
 
-        assertFalse($definition->isSingleton());
+        $this->assertFalse($serviceDefinition->isSingleton());
     }
 
-    public function testSingletonDefaultCanBeSetToToTrue()
+    public function testSingletonDefaultCanBeSetToToTrue(): void
     {
-        $definition = new ServiceDefinition('service_name', [], true);
+        $serviceDefinition = new ServiceDefinition('service_name', [], true);
 
-        assertTrue($definition->isSingleton());
+        $this->assertTrue($serviceDefinition->isSingleton());
     }
 
-    public function testArgumentsDefaultToAnEmptyList()
+    public function testArgumentsDefaultToAnEmptyList(): void
     {
-        $definition = new ServiceDefinition('service_name', []);
+        $serviceDefinition = new ServiceDefinition('service_name', []);
 
-        assertEquals([], $definition->getArguments());
+        $this->assertSame([], $serviceDefinition->getArguments());
     }
 
-    public function testMethodsDefaultToAnEmptyList()
+    public function testMethodsDefaultToAnEmptyList(): void
     {
-        $definition = new ServiceDefinition('service_name', []);
+        $serviceDefinition = new ServiceDefinition('service_name', []);
 
-        assertEquals([], $definition->getMethods());
+        $this->assertSame([], $serviceDefinition->getMethods());
     }
 
-    public function testServiceFactoryDefinition()
+    public function testServiceFactoryDefinition(): void
     {
-        $definition = new ServiceDefinition('service_name', ['factory' => __CLASS__]);
+        $serviceDefinition = new ServiceDefinition('service_name', ['factory' => self::class]);
 
-        assertTrue($definition->isFactory());
-        assertFalse($definition->isAlias());
-        assertSame(__CLASS__, $definition->getClass());
+        $this->assertTrue($serviceDefinition->isFactory());
+        $this->assertFalse($serviceDefinition->isAlias());
+        $this->assertSame(self::class, $serviceDefinition->getClass());
     }
 
-    public function testServiceAliasDefinition()
+    public function testServiceAliasDefinition(): void
     {
-        $definition = new ServiceDefinition('service_name', ['service' => __CLASS__]);
+        $serviceDefinition = new ServiceDefinition('service_name', ['service' => self::class]);
 
-        assertTrue($definition->isAlias());
-        assertFalse($definition->isFactory());
-        assertSame(__CLASS__, $definition->getClass());
+        $this->assertTrue($serviceDefinition->isAlias());
+        $this->assertFalse($serviceDefinition->isFactory());
+        $this->assertSame(self::class, $serviceDefinition->getClass());
     }
 
-    public function testItThrowIfClassAndFactoryAreDefined()
-    {
-        $this->expectException(InvalidConfigException::class);
-
-        new ServiceDefinition('service_name', ['class' => __CLASS__, 'factory' => __CLASS__]);
-    }
-
-    public function testItThrowIfClassAndServiceAreDefined()
+    public function testItThrowIfClassAndFactoryAreDefined(): void
     {
         $this->expectException(InvalidConfigException::class);
 
-        new ServiceDefinition('service_name', ['class' => __CLASS__, 'service' => __CLASS__]);
+        new ServiceDefinition('service_name', ['class' => self::class, 'factory' => self::class]);
     }
 
-    public function testItThrowIfFactoryAndServiceAreDefined()
+    public function testItThrowIfClassAndServiceAreDefined(): void
     {
         $this->expectException(InvalidConfigException::class);
 
-        new ServiceDefinition('service_name', ['factory' => __CLASS__, 'service' => __CLASS__]);
+        new ServiceDefinition('service_name', ['class' => self::class, 'service' => self::class]);
+    }
+
+    public function testItThrowIfFactoryAndServiceAreDefined(): void
+    {
+        $this->expectException(InvalidConfigException::class);
+
+        new ServiceDefinition('service_name', ['factory' => self::class, 'service' => self::class]);
     }
 }

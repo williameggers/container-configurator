@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
@@ -11,12 +13,8 @@ final class ReadOnlyException extends LogicException implements Exception
 
     /**
      * @internal
-     *
-     * @param string $name
-     *
-     * @return self
      */
-    public static function fromClassName($name)
+    public static function fromClassName(string $name): self
     {
         return self::create('"%s" is read only.', [$name]);
     }

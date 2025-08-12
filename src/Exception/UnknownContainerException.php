@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
@@ -12,12 +14,9 @@ final class UnknownContainerException extends LogicException implements Exceptio
     /**
      * @internal
      *
-     * @param string   $name
      * @param string[] $knownContainers
-     *
-     * @return self
      */
-    public static function fromContainerName($name, array $knownContainers)
+    public static function fromContainerName(string $name, array $knownContainers): self
     {
         return self::create(
             'Container %s is unknown; known containers are %s.',

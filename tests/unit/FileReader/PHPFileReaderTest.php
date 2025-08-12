@@ -1,57 +1,56 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\FileReader;
 
 use InvalidArgumentException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use tests\support\TestFileCreator;
 use TomPHP\ContainerConfigurator\Exception\InvalidConfigException;
 use TomPHP\ContainerConfigurator\FileReader\FileReader;
 use TomPHP\ContainerConfigurator\FileReader\PHPFileReader;
 
-final class PHPFileReaderTest extends PHPUnit_Framework_TestCase
+final class PHPFileReaderTest extends TestCase
 {
     use TestFileCreator;
 
-    /**
-     * @var PHPFileReader
-     */
-    private $reader;
+    private \TomPHP\ContainerConfigurator\FileReader\PHPFileReader $phpFileReader;
 
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->reader = new PHPFileReader();
+        $this->phpFileReader = new PHPFileReader();
     }
 
-    public function testItIsAFileReader()
+    public function testItIsAFileReader(): void
     {
-        assertInstanceOf(FileReader::class, $this->reader);
+        $this->assertInstanceOf(FileReader::class, $this->phpFileReader);
     }
 
-    public function testItThrowsIfFileDoesNotExist()
+    public function testItThrowsIfFileDoesNotExist(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        $this->reader->read('file-which-does-not-exist');
+        $this->phpFileReader->read('file-which-does-not-exist');
     }
 
-    public function testReadsAPHPConfigFile()
+    public function testReadsAPHPConfigFile(): void
     {
         $config = ['key' => 'value'];
         $code   = '<?php return ' . var_export($config, true) . ';';
 
         $this->createTestFile('config.php', $code);
 
-        assertEquals($config, $this->reader->read($this->getTestPath('config.php')));
+        $this->assertEquals($config, $this->phpFileReader->read($this->getTestPath('config.php')));
     }
 
-    public function testItThrowsIfTheConfigIsInvalid()
+    public function testItThrowsIfTheConfigIsInvalid(): void
     {
         $this->expectException(InvalidConfigException::class);
 
         $code = '<?php return 123;';
         $this->createTestFile('config.php', $code);
 
-        $this->reader->read($this->getTestPath('config.php'));
+        $this->phpFileReader->read($this->getTestPath('config.php'));
     }
 }

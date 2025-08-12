@@ -1,31 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\Exception;
 
 use DomainException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\Exception;
 use TomPHP\ContainerConfigurator\Exception\UnknownSettingException;
 
-final class UnknownSettingExceptionTest extends PHPUnit_Framework_TestCase
+final class UnknownSettingExceptionTest extends TestCase
 {
-    public function testItImplementsTheBaseExceptionType()
+    public function testItImplementsTheBaseExceptionType(): void
     {
-        assertInstanceOf(Exception::class, new UnknownSettingException());
+        $this->assertInstanceOf(Exception::class, new UnknownSettingException());
     }
 
-    public function testItIsADomainException()
+    public function testItIsADomainException(): void
     {
-        assertInstanceOf(DomainException::class, new UnknownSettingException());
+        $this->assertInstanceOf(DomainException::class, new UnknownSettingException());
     }
 
-    public function testItCanBeCreatedFromSetting()
+    public function testItCanBeCreatedFromSetting(): void
     {
-        $exception = UnknownSettingException::fromSetting('unknown', ['setting_a', 'setting_b']);
+        $unknownSettingException = UnknownSettingException::fromSetting('unknown', ['setting_a', 'setting_b']);
 
-        assertSame(
+        $this->assertSame(
             'Setting "unknown" is unknown; valid settings are ["setting_a", "setting_b"].',
-            $exception->getMessage()
+            $unknownSettingException->getMessage()
         );
     }
 }

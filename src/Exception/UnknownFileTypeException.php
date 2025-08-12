@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\Exception;
 
 use DomainException;
@@ -12,12 +14,9 @@ final class UnknownFileTypeException extends DomainException implements Exceptio
     /**
      * @internal
      *
-     * @param string   $extension
      * @param string[] $availableExtensions
-     *
-     * @return self
      */
-    public static function fromFileExtension($extension, array $availableExtensions)
+    public static function fromFileExtension(string $extension, array $availableExtensions): self
     {
         return self::create(
             'No reader configured for "%s" files; readers are available for %s.',

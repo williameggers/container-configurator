@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\Exception;
 use TomPHP\ContainerConfigurator\Exception\NoMatchingFilesException;
 
-final class NoMatchingFilesExceptionTest extends PHPUnit_Framework_TestCase
+final class NoMatchingFilesExceptionTest extends TestCase
 {
-    public function testItImplementsTheBaseExceptionType()
+    public function testItImplementsTheBaseExceptionType(): void
     {
-        assertInstanceOf(Exception::class, new NoMatchingFilesException());
+        $this->assertInstanceOf(Exception::class, new NoMatchingFilesException());
     }
 
-    public function testItIsALogicException()
+    public function testItIsALogicException(): void
     {
-        assertInstanceOf(LogicException::class, new NoMatchingFilesException());
+        $this->assertInstanceOf(LogicException::class, new NoMatchingFilesException());
     }
 
-    public function testItCanBeCreatedFromThePattern()
+    public function testItCanBeCreatedFromThePattern(): void
     {
-        assertSame(
+        $this->assertSame(
             'No files found matching pattern: "*.json".',
             NoMatchingFilesException::fromPattern('*.json')->getMessage()
         );

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator;
 
 use RecursiveArrayIterator;
@@ -7,53 +9,52 @@ use RecursiveIteratorIterator;
 
 /**
  * @internal
+ *
+ * @extends RecursiveIteratorIterator<RecursiveArrayIterator>
  */
 final class ApplicationConfigIterator extends RecursiveIteratorIterator
 {
     /**
      * @var string[]
      */
-    private $path = [];
+    private array $path = [];
 
-    /**
-     * @var string
-     */
-    private $separator;
+    private readonly string $separator;
 
-    /**
-     * @param ApplicationConfig $config
-     */
-    public function __construct(ApplicationConfig $config)
+    public function __construct(ApplicationConfig $applicationConfig)
     {
         parent::__construct(
-            new RecursiveArrayIterator($config->asArray()),
+            new RecursiveArrayIterator($applicationConfig->asArray()),
             RecursiveIteratorIterator::SELF_FIRST
         );
-        $this->separator = $config->getSeparator();
+        $this->separator = $applicationConfig->getSeparator();
     }
 
-    public function key()
+    public function key(): mixed
     {
         return implode($this->separator, array_merge($this->path, [parent::key()]));
     }
 
-    public function next()
+    public function next(): void
     {
         if ($this->callHasChildren()) {
-            array_push($this->path, parent::key());
+            $key = parent::key();
+            if (is_string($key) || is_int($key) || ($key instanceof \Stringable)) {
+                $this->path[] = (string) $key;
+            }
         }
 
         parent::next();
     }
 
-    public function rewind()
+    public function rewind(): void
     {
         $this->path = [];
 
         parent::rewind();
     }
 
-    public function endChildren()
+    public function endChildren(): void
     {
         array_pop($this->path);
     }

@@ -1,56 +1,55 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\FileReader;
 
 use InvalidArgumentException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml;
 use tests\support\TestFileCreator;
 use TomPHP\ContainerConfigurator\Exception\InvalidConfigException;
 use TomPHP\ContainerConfigurator\FileReader\FileReader;
 use TomPHP\ContainerConfigurator\FileReader\YAMLFileReader;
 
-final class YAMLFileReaderTest extends PHPUnit_Framework_TestCase
+final class YAMLFileReaderTest extends TestCase
 {
     use TestFileCreator;
 
-    /**
-     * @var YAMLFileReader
-     */
-    private $reader;
+    private \TomPHP\ContainerConfigurator\FileReader\YAMLFileReader $yamlFileReader;
 
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->reader = new YAMLFileReader();
+        $this->yamlFileReader = new YAMLFileReader();
     }
 
-    public function testItIsAFileReader()
+    public function testItIsAFileReader(): void
     {
-        assertInstanceOf(FileReader::class, $this->reader);
+        $this->assertInstanceOf(FileReader::class, $this->yamlFileReader);
     }
 
-    public function testItThrowsIfFileDoesNotExist()
+    public function testItThrowsIfFileDoesNotExist(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        $this->reader->read('file-which-does-not-exist');
+        $this->yamlFileReader->read('file-which-does-not-exist');
     }
 
-    public function testReadsAYAMLConfigFile()
+    public function testReadsAYAMLConfigFile(): void
     {
         $config = ['key' => 'value', 'sub' => ['key' => 'value']];
 
         $this->createTestFile('config.yml', Yaml\Yaml::dump($config));
 
-        assertEquals($config, $this->reader->read($this->getTestPath('config.yml')));
+        $this->assertEquals($config, $this->yamlFileReader->read($this->getTestPath('config.yml')));
     }
 
-    public function testItThrowsIfTheConfigIsInvalid()
+    public function testItThrowsIfTheConfigIsInvalid(): void
     {
         $this->expectException(InvalidConfigException::class);
 
         $this->createTestFile('config.yml', '[not yaml;');
 
-        $this->reader->read($this->getTestPath('config.yml'));
+        $this->yamlFileReader->read($this->getTestPath('config.yml'));
     }
 }

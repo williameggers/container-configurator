@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
@@ -11,12 +13,8 @@ final class NoMatchingFilesException extends LogicException implements Exception
 
     /**
      * @internal
-     *
-     * @param string $pattern
-     *
-     * @return self
      */
-    public static function fromPattern($pattern)
+    public static function fromPattern(string $pattern): self
     {
         return self::create('No files found matching pattern: "%s".', [$pattern]);
     }

@@ -1,31 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\Exception;
 
 use DomainException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\Exception;
 use TomPHP\ContainerConfigurator\Exception\UnknownFileTypeException;
 
-final class UnknownFileTypeExceptionTest extends PHPUnit_Framework_TestCase
+final class UnknownFileTypeExceptionTest extends TestCase
 {
-    public function testItImplementsTheBaseExceptionType()
+    public function testItImplementsTheBaseExceptionType(): void
     {
-        assertInstanceOf(Exception::class, new UnknownFileTypeException());
+        $this->assertInstanceOf(Exception::class, new UnknownFileTypeException());
     }
 
-    public function testItIsADomainException()
+    public function testItIsADomainException(): void
     {
-        assertInstanceOf(DomainException::class, new UnknownFileTypeException());
+        $this->assertInstanceOf(DomainException::class, new UnknownFileTypeException());
     }
 
-    public function testItCanBeCreatedFromFileExtension()
+    public function testItCanBeCreatedFromFileExtension(): void
     {
-        $exception = UnknownFileTypeException::fromFileExtension('.yml', ['.json', '.php']);
+        $unknownFileTypeException = UnknownFileTypeException::fromFileExtension('.yml', ['.json', '.php']);
 
-        assertSame(
+        $this->assertSame(
             'No reader configured for ".yml" files; readers are available for [".json", ".php"].',
-            $exception->getMessage()
+            $unknownFileTypeException->getMessage()
         );
     }
 }

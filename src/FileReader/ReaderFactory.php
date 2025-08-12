@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\FileReader;
 
 use Assert\Assertion;
 use InvalidArgumentException;
+use TomPHP\ContainerConfigurator\Exception\NotFileReaderException;
 use TomPHP\ContainerConfigurator\Exception\UnknownFileTypeException;
 
 /**
@@ -12,51 +15,42 @@ use TomPHP\ContainerConfigurator\Exception\UnknownFileTypeException;
 final class ReaderFactory
 {
     /**
-     * @var string[]
+     * @var array<string,FileReader>
      */
-    private $config;
+    private array $readers = [];
 
     /**
-     * @var FileReader[]
+     * @param array<string,string> $config
      */
-    private $readers = [];
-
-    /**
-     * @param array $config
-     */
-    public function __construct(array $config)
+    public function __construct(private readonly array $config)
     {
-        $this->config = $config;
     }
 
     /**
-     * @param string $filename
-     *
      * @throws InvalidArgumentException
-     *
-     * @return FileReader
      */
-    public function create($filename)
+    public function create(string $filename): FileReader
     {
         Assertion::file($filename);
 
         $readerClass = $this->getReaderClass($filename);
 
         if (!isset($this->readers[$readerClass])) {
-            $this->readers[$readerClass] = new $readerClass();
+            $readerClassInstance = new $readerClass();
+            if (!$readerClassInstance instanceof FileReader) {
+                throw NotFileReaderException::fromClassName($readerClass);
+            }
+
+            $this->readers[$readerClass] = $readerClassInstance;
         }
 
         return $this->readers[$readerClass];
     }
 
     /**
-     * @param string $filename
-     *
      * @throws UnknownFileTypeException
-     *
-     * @return string
      */
-    private function getReaderClass($filename)
+    private function getReaderClass(string $filename): string
     {
         $readerClass = null;
 
@@ -77,14 +71,8 @@ final class ReaderFactory
         return $readerClass;
     }
 
-    /**
-     * @param string $haystack
-     * @param string $needle
-     *
-     * @return bool
-     */
-    private function endsWith($haystack, $needle)
+    private function endsWith(string $haystack, string $needle): bool
     {
-        return $needle === substr($haystack, -strlen($needle));
+        return str_ends_with($haystack, $needle);
     }
 }

@@ -1,49 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\FileReader;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use tests\support\TestFileCreator;
 use TomPHP\ContainerConfigurator\FileReader\FileLocator;
 
-final class FileLocatorTest extends PHPUnit_Framework_TestCase
+final class FileLocatorTest extends TestCase
 {
     use TestFileCreator;
 
-    /**
-     * @var FileLocator
-     */
-    private $locator;
+    private \TomPHP\ContainerConfigurator\FileReader\FileLocator $fileLocator;
 
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->locator = new FileLocator();
+        $this->fileLocator = new FileLocator();
     }
 
-    public function testItFindsFilesByGlobbing()
+    public function testItFindsFilesByGlobbing(): void
     {
         $this->createTestFile('config1.php');
         $this->createTestFile('config2.php');
         $this->createTestFile('config.json');
 
-        $files = $this->locator->locate($this->getTestPath('*.php'));
+        $files = $this->fileLocator->locate($this->getTestPath('*.php'));
 
-        assertEquals([
+        $this->assertSame([
             $this->getTestPath('config1.php'),
             $this->getTestPath('config2.php'),
         ], $files);
     }
 
-    public function testItFindsFindsFilesByGlobbingWithBraces()
+    public function testItFindsFindsFilesByGlobbingWithBraces(): void
     {
         $this->createTestFile('global.php');
         $this->createTestFile('database.local.php');
         $this->createTestFile('nothing.php');
         $this->createTestFile('nothing.php.dist');
 
-        $files = $this->locator->locate($this->getTestPath('{,*.}{global,local}.php'));
+        $files = $this->fileLocator->locate($this->getTestPath('{,*.}{global,local}.php'));
 
-        assertEquals([
+        $this->assertSame([
             $this->getTestPath('global.php'),
             $this->getTestPath('database.local.php'),
         ], $files);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
@@ -11,12 +13,8 @@ final class NotClassDefinitionException extends LogicException implements Except
 
     /**
      * @internal
-     *
-     * @param string $name
-     *
-     * @return self
      */
-    public static function fromServiceName($name)
+    public static function fromServiceName(string $name): self
     {
         return self::create(
             'Service configuration for "%s" did not create a class definition.',

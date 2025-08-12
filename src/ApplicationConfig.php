@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator;
 
 use ArrayAccess;
@@ -7,56 +9,58 @@ use InvalidArgumentException;
 use IteratorAggregate;
 use TomPHP\ContainerConfigurator\Exception\EntryDoesNotExistException;
 use TomPHP\ContainerConfigurator\Exception\ReadOnlyException;
+use Traversable;
 
 /**
  * @internal
  */
+/**
+ * @implements ArrayAccess<int|string, mixed>
+ * @implements IteratorAggregate<int|string, mixed>
+ */
 final class ApplicationConfig implements ArrayAccess, IteratorAggregate
 {
     /**
-     * @var array
+     * @var non-empty-string
      */
-    private $config;
+    private string $separator;
 
     /**
-     * @var string
-     */
-    private $separator;
-
-    /**
-     * @param array  $config
-     * @param string $separator
+     * @param non-empty-string $separator
      *
      * @throws InvalidArgumentException
      */
-    public function __construct(array $config, $separator = '.')
-    {
+    public function __construct(/**
+         * @var array<int|string,mixed>
+         */
+        private array $config,
+        string $separator = '.'
+    ) {
         \Assert\that($separator)->string()->notEmpty();
-
-        $this->config    = $config;
         $this->separator = $separator;
     }
 
-    public function merge(array $config)
+    /**
+     * @param array<int|string,mixed> $config
+     */
+    public function merge(array $config): void
     {
         $this->config = array_replace_recursive($this->config, $config);
     }
 
     /**
-     * @param string $separator
+     * @param non-empty-string $separator
      *
      * @throws InvalidArgumentException
-     *
-     * @return void
      */
-    public function setSeparator($separator)
+    public function setSeparator(string $separator): void
     {
         \Assert\that($separator)->string()->notEmpty();
 
         $this->separator = $separator;
     }
 
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         return new ApplicationConfigIterator($this);
     }
@@ -64,16 +68,16 @@ final class ApplicationConfig implements ArrayAccess, IteratorAggregate
     /**
      * @return array<int|string>
      */
-    public function getKeys()
+    public function getKeys(): array
     {
         return array_keys(iterator_to_array(new ApplicationConfigIterator($this)));
     }
 
-    public function offsetExists($offset)
+    public function offsetExists(mixed $offset): bool
     {
         try {
-            $this->traverseConfig($this->getPath($offset));
-        } catch (EntryDoesNotExistException $e) {
+            $this->traverseConfig($this->getPath((string) $offset));
+        } catch (EntryDoesNotExistException) {
             return false;
         }
 
@@ -81,26 +85,19 @@ final class ApplicationConfig implements ArrayAccess, IteratorAggregate
     }
 
     /**
-     * @param mixed $offset
-     *
      * @throws EntryDoesNotExistException
-     *
-     * @return mixed
      */
-    public function offsetGet($offset)
+    public function offsetGet(mixed $offset): mixed
     {
-        return $this->traverseConfig($this->getPath($offset));
+        return $this->traverseConfig($this->getPath((string) $offset));
     }
 
     /**
-     * @param mixed $offset
-     * @param mixed $value
-     *
      * @throws ReadOnlyException
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet(mixed $offset, mixed $value): void
     {
-        throw ReadOnlyException::fromClassName(__CLASS__);
+        throw ReadOnlyException::fromClassName(self::class);
     }
 
     /**
@@ -108,45 +105,38 @@ final class ApplicationConfig implements ArrayAccess, IteratorAggregate
      *
      * @throws ReadOnlyException
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
-        throw ReadOnlyException::fromClassName(__CLASS__);
+        throw ReadOnlyException::fromClassName(self::class);
     }
 
     /**
-     * @return array
+     * @return array<int|string,mixed>
      */
-    public function asArray()
+    public function asArray(): array
     {
         return $this->config;
     }
 
-    /**
-     * @return string
-     */
-    public function getSeparator()
+    public function getSeparator(): string
     {
         return $this->separator;
     }
 
     /**
-     * @param string $offset
-     *
-     * @return array
+     * @return array<string>
      */
-    private function getPath($offset)
+    private function getPath(string $offset): array
     {
         return explode($this->separator, $offset);
     }
 
     /**
-     * @param array $path
+     * @param array<int|string> $path
      *
      * @throws EntryDoesNotExistException
-     *
-     * @return mixed
      */
-    private function traverseConfig(array $path)
+    private function traverseConfig(array $path): mixed
     {
         $pointer = &$this->config;
 

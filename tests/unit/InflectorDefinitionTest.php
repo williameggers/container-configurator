@@ -1,35 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\InflectorDefinition;
 
-final class InflectorDefinitionTest extends PHPUnit_Framework_TestCase
+final class InflectorDefinitionTest extends TestCase
 {
-    /**
-     * @var InflectorDefinition
-     */
-    private $subject;
+    private \TomPHP\ContainerConfigurator\InflectorDefinition $inflectorDefinition;
 
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->subject = new InflectorDefinition(
+        $this->inflectorDefinition = new InflectorDefinition(
             'interface_name',
             ['method1' => ['arg1', 'arg2']]
         );
     }
 
-    public function testGetInterfaceReturnsTheInterfaceName()
+    public function testGetInterfaceReturnsTheInterfaceName(): void
     {
-        assertEquals('interface_name', $this->subject->getInterface());
+        $this->assertSame('interface_name', $this->inflectorDefinition->getInterface());
     }
 
-    public function testGetMethodsReturnsTheMethods()
+    public function testGetMethodsReturnsTheMethods(): void
     {
-        assertEquals(
+        $this->assertSame(
             ['method1' => ['arg1', 'arg2']],
-            $this->subject->getMethods()
+            $this->inflectorDefinition->getMethods()
         );
     }
 }

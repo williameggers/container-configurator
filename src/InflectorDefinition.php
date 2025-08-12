@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator;
 
 /**
@@ -8,37 +10,21 @@ namespace TomPHP\ContainerConfigurator;
 final class InflectorDefinition
 {
     /**
-     * @var string
+     * @param array<string,array<mixed>> $methods
      */
-    private $interface;
-
-    /**
-     * @var array
-     */
-    private $methods;
-
-    /**
-     * @param string $interface
-     * @param array  $methods
-     */
-    public function __construct($interface, array $methods)
+    public function __construct(private readonly string $interface, private readonly array $methods)
     {
-        $this->interface = $interface;
-        $this->methods   = $methods;
     }
 
-    /**
-     * @return string
-     */
-    public function getInterface()
+    public function getInterface(): string
     {
         return $this->interface;
     }
 
     /**
-     * @return array
+     * @return array<string,array<mixed>>
      */
-    public function getMethods()
+    public function getMethods(): array
     {
         return $this->methods;
     }

@@ -1,39 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator;
 
 use InvalidArgumentException;
 
 interface ContainerAdapter
 {
-    /**
-     * @param object $container
-     *
-     * @return void
-     */
-    public function setContainer($container);
+    public function setContainer(object $container): void;
 
     /**
-     * @param ApplicationConfig $config
-     * @param string            $prefix
-     *
      * @throws InvalidArgumentException
-     *
-     * @return void
      */
-    public function addApplicationConfig(ApplicationConfig $config, $prefix = 'config');
+    public function addApplicationConfig(ApplicationConfig $applicationConfig, string $prefix = 'config'): void;
 
-    /**
-     * @param ServiceConfig $config
-     *
-     * @return void
-     */
-    public function addServiceConfig(ServiceConfig $config);
+    public function addServiceConfig(ServiceConfig $serviceConfig): void;
 
-    /**
-     * @param InflectorConfig $config
-     *
-     * @return void
-     */
-    public function addInflectorConfig(InflectorConfig $config);
+    public function addInflectorConfig(InflectorConfig $inflectorConfig): void;
 }

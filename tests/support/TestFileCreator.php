@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\support;
 
 trait TestFileCreator
@@ -9,26 +11,23 @@ trait TestFileCreator
      */
     private $configFilePath;
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->deleteTestFiles();
     }
 
     /**
      * @param string $name
-     *
-     * @return string
      */
-    protected function getTestPath($name)
+    protected function getTestPath($name): string
     {
         $this->ensurePathExists();
 
-        return "{$this->configFilePath}/$name";
+        return sprintf('%s/%s', $this->configFilePath, $name);
     }
 
     /**
      * @param string $filename
-     * @param array  $config
      */
     protected function createPHPConfigFile($filename, array $config)
     {
@@ -39,7 +38,6 @@ trait TestFileCreator
 
     /**
      * @param string $filename
-     * @param array  $config
      */
     protected function createJSONConfigFile($filename, array $config)
     {
@@ -56,26 +54,26 @@ trait TestFileCreator
     {
         $this->ensurePathExists();
 
-        file_put_contents("{$this->configFilePath}/$name", $content);
+        file_put_contents(sprintf('%s/%s', $this->configFilePath, $name), $content);
     }
 
-    private function deleteTestFiles()
+    private function deleteTestFiles(): void
     {
         $this->ensurePathExists();
 
         // Test for safety!
-        if (strpos($this->configFilePath, __DIR__) !== 0) {
+        if (!str_starts_with($this->configFilePath, __DIR__)) {
             throw new \Exception('DANGER!!! - Config file is not local to this project');
         }
 
-        $files = glob("{$this->configFilePath}/*");
+        $files = glob($this->configFilePath . '/*');
 
         foreach ($files as $file) {
             unlink($file);
         }
     }
 
-    private function ensurePathExists()
+    private function ensurePathExists(): void
     {
         $this->configFilePath = __DIR__ . '/../.test-config';
 

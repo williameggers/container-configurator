@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\Exception;
 use TomPHP\ContainerConfigurator\Exception\NotContainerAdapterException;
 
-final class NotContainerAdapterExceptionTest extends PHPUnit_Framework_TestCase
+final class NotContainerAdapterExceptionTest extends TestCase
 {
-    public function testItImplementsTheBaseExceptionType()
+    public function testItImplementsTheBaseExceptionType(): void
     {
-        assertInstanceOf(Exception::class, new NotContainerAdapterException());
+        $this->assertInstanceOf(Exception::class, new NotContainerAdapterException());
     }
 
-    public function testItIsALogicException()
+    public function testItIsALogicException(): void
     {
-        assertInstanceOf(LogicException::class, new NotContainerAdapterException());
+        $this->assertInstanceOf(LogicException::class, new NotContainerAdapterException());
     }
 
-    public function testItCanBeCreatedFromThePatterns()
+    public function testItCanBeCreatedFromThePatterns(): void
     {
-        assertSame(
+        $this->assertSame(
             'Class "Foo" is not a container adapter.',
             NotContainerAdapterException::fromClassName('Foo')->getMessage()
         );

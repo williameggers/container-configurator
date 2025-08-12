@@ -15,21 +15,25 @@
     ],
     "suggest": {
         "league/container": "Small but powerful dependency injection container http://container.thephpleague.com",
-        "pimple/pimple": "A small PHP 5.3 dependency injection container http://pimple.sensiolabs.org",
-        "symfony/yaml": "For reading configuration from YAML files"
+        "pimple/pimple": "A small PHP dependency injection container https://github.com/silexphp/Pimple",
+        "symfony/yaml": "For reading configuration from YAML files",
+        "laktak/hjson": "For reading configuration from HJSON files"
     },
     "require": {
-        "php": "^5.6|^7.0",
-        "beberlei/assert": "^2.6",
-        "tomphp/exception-constructor-tools": "^1.0.0"
+        "php": "^8.1",
+        "beberlei/assert": "^3.3",
+        "tomphp/exception-constructor-tools": "^2.0"
     },
     "require-dev": {
-        "friendsofphp/php-cs-fixer": "^2.1.0",
-        "league/container": "^2.0.2",
-        "phpunit/phpunit": "^5.5.4",
-        "pimple/pimple": "^3.0.0",
-        "squizlabs/php_codesniffer": "^2.8.0",
-        "symfony/yaml": "^3.1.4"
+        "friendsofphp/php-cs-fixer": "^3.85",
+        "laktak/hjson": "^2.3",
+        "league/container": "^5.1",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^9.6 || ^7.5 || ^11.5",
+        "pimple/pimple": "^3.5",
+        "rector/rector": "^2.1",
+        "squizlabs/php_codesniffer": "^3.9",
+        "symfony/yaml": "^6.4"
     },
     "autoload": {
         "psr-4": {
@@ -59,8 +63,18 @@
             "phpcs --standard=psr2 src tests",
             "php-cs-fixer fix --dry-run --verbose"
         ],
+        "analyse": [
+            "phpstan analyse --memory-limit=1G"
+        ],
+        "rector": [
+            "rector process src tests --ansi"
+        ],
+        "rector:dry": [
+            "rector process src tests --dry-run --ansi"
+        ],
         "test": [
             "@cs:check",
+            "@analyse",
             "phpunit --colors=always"
         ]
     }

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\League;
 
-use League\Container\Definition\ClassDefinition;
+use League\Container\Definition\Definition;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 use TomPHP\ContainerConfigurator\Configurator;
 use TomPHP\ContainerConfigurator\Exception\NotClassDefinitionException;
-use TomPHP\ContainerConfigurator\ServiceConfig;
+use TomPHP\ContainerConfigurator\Exception\NotFactoryException;
 use TomPHP\ContainerConfigurator\ServiceDefinition;
 
 /**
@@ -15,129 +17,119 @@ use TomPHP\ContainerConfigurator\ServiceDefinition;
 final class ServiceServiceProvider extends AbstractServiceProvider
 {
     /**
-     * @var array
+     * @var array<int|string,string>
      */
-    private $config;
+    private readonly array $provides;
 
-    /**
-     * @param ServiceConfig $config
-     */
-    public function __construct(ServiceConfig $config)
+    public function __construct(private readonly \TomPHP\ContainerConfigurator\ServiceConfig $serviceConfig)
     {
-        $this->config   = $config;
-        $this->provides = $config->getKeys();
+        $this->provides = $this->serviceConfig->getKeys();
     }
 
-    public function register()
+    public function provides(string $id): bool
     {
-        foreach ($this->config as $config) {
+        return in_array($id, $this->provides);
+    }
+
+    public function register(): void
+    {
+        foreach ($this->serviceConfig as $config) {
             $this->registerService($config);
         }
     }
 
     /**
-     * @param ServiceDefinition $definition
-     *
      * @throws NotClassDefinitionException
-     *
-     * @return void
      */
-    private function registerService(ServiceDefinition $definition)
+    private function registerService(ServiceDefinition $serviceDefinition): void
     {
-        if ($definition->isFactory()) {
-            $this->getContainer()->add(
-                $definition->getName(),
-                $this->createFactoryFactory($definition),
-                $definition->isSingleton()
+        if ($serviceDefinition->isFactory()) {
+            $service = $this->getContainer()->add(
+                $serviceDefinition->getName(),
+                $this->createFactoryFactory($serviceDefinition)
             );
+
+            $service->setShared($serviceDefinition->isSingleton());
 
             return;
         }
 
-        if ($definition->isAlias()) {
+        if ($serviceDefinition->isAlias()) {
             $this->getContainer()->add(
-                $definition->getName(),
-                $this->createAliasFactory($definition)
+                $serviceDefinition->getName(),
+                $this->createAliasFactory($serviceDefinition)
             );
 
             return;
         }
 
         $service = $this->getContainer()->add(
-            $definition->getName(),
-            $definition->getClass(),
-            $definition->isSingleton()
+            $serviceDefinition->getName(),
+            $serviceDefinition->getClass()
         );
 
-        if (!$service instanceof ClassDefinition) {
-            throw NotClassDefinitionException::fromServiceName($definition->getName());
+        $service->setShared($serviceDefinition->isSingleton());
+
+        if (!$service instanceof Definition) {
+            throw NotClassDefinitionException::fromServiceName($serviceDefinition->getName());
         }
 
-        $service->withArguments($this->injectContainer($definition->getArguments()));
-        $this->addMethodCalls($service, $definition);
+        $service->addArguments($this->injectContainer($serviceDefinition->getArguments()));
+        $this->addMethodCalls($service, $serviceDefinition);
     }
 
-    /**
-     * @param ClassDefinition   $service
-     * @param ServiceDefinition $definition
-     */
-    private function addMethodCalls(ClassDefinition $service, ServiceDefinition $definition)
+    private function addMethodCalls(Definition $definition, ServiceDefinition $serviceDefinition): void
     {
-        foreach ($definition->getMethods() as $method => $args) {
-            $service->withMethodCall($method, $this->injectContainer($args));
+        foreach ($serviceDefinition->getMethods() as $method => $args) {
+            $definition->addMethodCall($method, $this->injectContainer($args));
         }
     }
 
     /**
-     * @param ServiceDefinition $definition
-     *
      * @return \Closure
      */
-    private function createAliasFactory(ServiceDefinition $definition)
+    private function createAliasFactory(ServiceDefinition $serviceDefinition)
     {
-        return function () use ($definition) {
-            return $this->getContainer()->get($definition->getClass());
-        };
+        return fn () => $this->getContainer()->get($serviceDefinition->getClass());
     }
 
     /**
-     * @param ServiceDefinition $definition
-     *
      * @return \Closure
      */
-    private function createFactoryFactory(ServiceDefinition $definition)
+    private function createFactoryFactory(ServiceDefinition $serviceDefinition)
     {
-        return function () use ($definition) {
-            $className = $definition->getClass();
+        return function () use ($serviceDefinition) {
+            $className = $serviceDefinition->getClass();
             $factory   = new $className();
+            if (!is_callable($factory)) {
+                throw NotFactoryException::fromClassName($className);
+            }
 
-            return $factory(...$this->resolveArguments($definition->getArguments()));
+            return $factory(...$this->resolveArguments($serviceDefinition->getArguments()));
         };
     }
 
     /**
-     * @param array $arguments
+     * @param array<mixed> $arguments
      *
-     * @return array
+     * @return array<mixed>
      */
-    private function injectContainer(array $arguments)
+    private function injectContainer(array $arguments): array
     {
         return array_map(
-            function ($argument) {
-                return ($argument === Configurator::container())
-                    ? $this->container
-                    : $argument;
-            },
+            fn ($argument): mixed => ($argument === Configurator::container())
+                ? $this->container
+                : $argument,
             $arguments
         );
     }
 
     /**
-     * @param array $arguments
+     * @param array<mixed> $arguments
      *
-     * @return array
+     * @return array<mixed>
      */
-    private function resolveArguments(array $arguments)
+    private function resolveArguments(array $arguments): array
     {
         return array_map(
             function ($argument) {
@@ -145,8 +137,10 @@ final class ServiceServiceProvider extends AbstractServiceProvider
                     return $this->container;
                 }
 
-                if ($this->container->has($argument)) {
-                    return $this->container->get($argument);
+                if ((is_string($argument) || is_int($argument) || $argument instanceof \Stringable)
+                    && $this->container?->has((string) $argument)
+                ) {
+                    return $this->container->get((string) $argument);
                 }
 
                 return $argument;

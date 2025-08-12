@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use tests\mocks\ExampleContainer;
 use tests\mocks\ExampleContainerAdapter;
 use tests\mocks\ExampleExtendedContainer;
@@ -11,59 +13,56 @@ use TomPHP\ContainerConfigurator\ContainerAdapterFactory;
 use TomPHP\ContainerConfigurator\Exception\NotContainerAdapterException;
 use TomPHP\ContainerConfigurator\Exception\UnknownContainerException;
 
-final class ContainerAdapterFactoryTest extends PHPUnit_Framework_TestCase
+final class ContainerAdapterFactoryTest extends TestCase
 {
-    /**
-     * @var ContainerAdapterFactory
-     */
-    private $subject;
+    private \TomPHP\ContainerConfigurator\ContainerAdapterFactory $containerAdapterFactory;
 
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->subject = new ContainerAdapterFactory([
+        $this->containerAdapterFactory = new ContainerAdapterFactory([
             ExampleContainer::class => ExampleContainerAdapter::class,
         ]);
     }
 
-    public function testItCreatesAnInstanceOfTheContainerAdapter()
+    public function testItCreatesAnInstanceOfTheContainerAdapter(): void
     {
-        assertInstanceOf(
+        $this->assertInstanceOf(
             ExampleContainerAdapter::class,
-            $this->subject->create(new ExampleContainer())
+            $this->containerAdapterFactory->create(new ExampleContainer())
         );
     }
 
-    public function testItCreatesAnInstanceOfTheConfiguratorForSubclassedContainer()
+    public function testItCreatesAnInstanceOfTheConfiguratorForSubclassedContainer(): void
     {
-        assertInstanceOf(
+        $this->assertInstanceOf(
             ExampleContainerAdapter::class,
-            $this->subject->create(new ExampleExtendedContainer())
+            $this->containerAdapterFactory->create(new ExampleExtendedContainer())
         );
     }
 
-    public function testItThrowsIfContainerIsNotKnown()
+    public function testItThrowsIfContainerIsNotKnown(): void
     {
         $this->expectException(UnknownContainerException::class);
 
-        $this->subject->create(new \stdClass());
+        $this->containerAdapterFactory->create(new \stdClass());
     }
 
-    public function testItThrowsIfNotAContainerAdapter()
+    public function testItThrowsIfNotAContainerAdapter(): void
     {
-        $this->subject = new ContainerAdapterFactory([
+        $this->containerAdapterFactory = new ContainerAdapterFactory([
             ExampleContainer::class => NotContainerAdapter::class,
         ]);
 
         $this->expectException(NotContainerAdapterException::class);
 
-        $this->subject->create(new ExampleContainer());
+        $this->containerAdapterFactory->create(new ExampleContainer());
     }
 
-    public function testItSetsTheContainerOnTheConfigurator()
+    public function testItSetsTheContainerOnTheConfigurator(): void
     {
-        $container    = new ExampleContainer();
-        $configurator = $this->subject->create($container);
+        $exampleContainer    = new ExampleContainer();
+        $containerAdapter    = $this->containerAdapterFactory->create($exampleContainer);
 
-        assertSame($container, $configurator->getContainer());
+        $this->assertSame($exampleContainer, $containerAdapter->getContainer());
     }
 }

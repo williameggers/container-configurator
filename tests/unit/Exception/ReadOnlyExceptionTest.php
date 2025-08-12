@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\Exception;
 use TomPHP\ContainerConfigurator\Exception\ReadOnlyException;
 
-final class ReadOnlyExceptionTest extends PHPUnit_Framework_TestCase
+final class ReadOnlyExceptionTest extends TestCase
 {
-    public function testItImplementsTheBaseExceptionType()
+    public function testItImplementsTheBaseExceptionType(): void
     {
-        assertInstanceOf(Exception::class, new ReadOnlyException());
+        $this->assertInstanceOf(Exception::class, new ReadOnlyException());
     }
 
-    public function testItIsALogicException()
+    public function testItIsALogicException(): void
     {
-        assertInstanceOf(LogicException::class, new ReadOnlyException());
+        $this->assertInstanceOf(LogicException::class, new ReadOnlyException());
     }
 
-    public function testItCanBeCreatedFromThePatterns()
+    public function testItCanBeCreatedFromThePatterns(): void
     {
-        assertSame(
+        $this->assertSame(
             '"ClassName" is read only.',
             ReadOnlyException::fromClassName('ClassName')->getMessage()
         );

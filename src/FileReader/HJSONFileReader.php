@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace TomPHP\ContainerConfigurator\FileReader;
 
 use Assert\Assertion;
+use HJSON\HJSONException;
+use HJSON\HJSONParser;
 use TomPHP\ContainerConfigurator\Exception\InvalidConfigException;
+use TomPHP\ContainerConfigurator\Exception\MissingDependencyException;
 
 /**
  * @internal
  */
-final class JSONFileReader implements FileReader
+final class HJSONFileReader implements FileReader
 {
     private const JSON_ERRORS = [
         JSON_ERROR_NONE                  => null,
@@ -26,14 +29,37 @@ final class JSONFileReader implements FileReader
         JSON_ERROR_UTF16                 => 'Malformed UTF-16 characters, possibly incorrectly encoded',
     ];
 
+    private readonly HJSONParser $hjsonParser;
+
+    /**
+     * @throws MissingDependencyException
+     */
+    public function __construct()
+    {
+        if (!class_exists(HJSONParser::class)) {
+            throw MissingDependencyException::fromPackageName('laktak/hjson');
+        }
+
+        $this->hjsonParser = new HJSONParser();
+    }
+
     public function read(string $filename): mixed
     {
         Assertion::file($filename);
 
-        $config = json_decode(file_get_contents($filename) ?: '', true);
+        try {
+            $config = $this->hjsonParser->parse(
+                file_get_contents($filename),
+                [
+                    'assoc' => true, // boolean, return associative array instead of object
+                ]
+            );
+        } catch (HJSONException $hjsonException) {
+            throw InvalidConfigException::fromHJSONFileError($filename, $hjsonException->getMessage());
+        }
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            throw InvalidConfigException::fromJSONFileError($filename, $this->getJsonError());
+        if (JSON_ERROR_NONE !== json_last_error()) {
+            throw InvalidConfigException::fromHJSONFileError($filename, $this->getJsonError());
         }
 
         return $config;

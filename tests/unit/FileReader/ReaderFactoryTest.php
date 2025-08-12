@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\FileReader;
 
 use InvalidArgumentException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use tests\support\TestFileCreator;
 use TomPHP\ContainerConfigurator\Exception\UnknownFileTypeException;
 use TomPHP\ContainerConfigurator\FileReader\JSONFileReader;
@@ -11,18 +13,15 @@ use TomPHP\ContainerConfigurator\FileReader\PHPFileReader;
 use TomPHP\ContainerConfigurator\FileReader\ReaderFactory;
 use TomPHP\ContainerConfigurator\FileReader\YAMLFileReader;
 
-final class ReaderFactoryTest extends PHPUnit_Framework_TestCase
+final class ReaderFactoryTest extends TestCase
 {
     use TestFileCreator;
 
-    /**
-     * @var ReaderFactory
-     */
-    private $factory;
+    private \TomPHP\ContainerConfigurator\FileReader\ReaderFactory $readerFactory;
 
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->factory = new ReaderFactory([
+        $this->readerFactory = new ReaderFactory([
             '.php'  => PHPFileReader::class,
             '.json' => JSONFileReader::class,
             '.yaml' => YAMLFileReader::class,
@@ -32,19 +31,16 @@ final class ReaderFactoryTest extends PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerCreatesAppropriateFileReader
-     *
-     * @param string $extension
-     * @param string $fileReaderClass
      */
-    public function testCreatesAppropriateFileReader($extension, $fileReaderClass)
+    public function testCreatesAppropriateFileReader(string $extension, string $fileReaderClass): void
     {
         $filename = 'test' . $extension;
 
         $this->createTestFile($filename);
 
-        $reader = $this->factory->create($this->getTestPath($filename));
+        $fileReader = $this->readerFactory->create($this->getTestPath($filename));
 
-        assertInstanceOf($fileReaderClass, $reader);
+        $this->assertInstanceOf($fileReaderClass, $fileReader);
     }
 
     /**
@@ -67,30 +63,30 @@ final class ReaderFactoryTest extends PHPUnit_Framework_TestCase
         }
     }
 
-    public function testReturnsTheSameReaderForTheSameFileType()
+    public function testReturnsTheSameReaderForTheSameFileType(): void
     {
         $this->createTestFile('test1.php');
         $this->createTestFile('test2.php');
 
-        $reader1 = $this->factory->create($this->getTestPath('test1.php'));
-        $reader2 = $this->factory->create($this->getTestPath('test2.php'));
+        $fileReader = $this->readerFactory->create($this->getTestPath('test1.php'));
+        $reader2    = $this->readerFactory->create($this->getTestPath('test2.php'));
 
-        assertSame($reader1, $reader2);
+        $this->assertSame($fileReader, $reader2);
     }
 
-    public function testItThrowsIfTheArgumentIsNotAFileName()
+    public function testItThrowsIfTheArgumentIsNotAFileName(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        $this->factory->create('missing-file.xxx');
+        $this->readerFactory->create('missing-file.xxx');
     }
 
-    public function testItThrowsIfThereIsNoRegisteredReaderForGivenFileType()
+    public function testItThrowsIfThereIsNoRegisteredReaderForGivenFileType(): void
     {
         $this->createTestFile('test.unknown');
 
         $this->expectException(UnknownFileTypeException::class);
 
-        $this->factory->create($this->getTestPath('test.unknown'));
+        $this->readerFactory->create($this->getTestPath('test.unknown'));
     }
 }

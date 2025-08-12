@@ -1,31 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\Exception;
 use TomPHP\ContainerConfigurator\Exception\UnknownContainerException;
 
-final class UnknownContainerExceptionTest extends PHPUnit_Framework_TestCase
+final class UnknownContainerExceptionTest extends TestCase
 {
-    public function testItImplementsTheBaseExceptionType()
+    public function testItImplementsTheBaseExceptionType(): void
     {
-        assertInstanceOf(Exception::class, new UnknownContainerException());
+        $this->assertInstanceOf(Exception::class, new UnknownContainerException());
     }
 
-    public function testItIsADomainException()
+    public function testItIsADomainException(): void
     {
-        assertInstanceOf(LogicException::class, new UnknownContainerException());
+        $this->assertInstanceOf(LogicException::class, new UnknownContainerException());
     }
 
-    public function testItCanBeCreatedFromFileExtension()
+    public function testItCanBeCreatedFromFileExtension(): void
     {
-        $exception = UnknownContainerException::fromContainerName('example-container', ['container-a', 'container-b']);
+        $unknownContainerException =
+            UnknownContainerException::fromContainerName('example-container', ['container-a', 'container-b']);
 
-        assertSame(
+        $this->assertSame(
             'Container example-container is unknown; known containers are ["container-a", "container-b"].',
-            $exception->getMessage()
+            $unknownContainerException->getMessage()
         );
     }
 }

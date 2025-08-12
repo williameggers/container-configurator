@@ -1,17 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\ServiceConfig;
 use TomPHP\ContainerConfigurator\ServiceDefinition;
 
-final class ServiceConfigTest extends PHPUnit_Framework_TestCase
+final class ServiceConfigTest extends TestCase
 {
-    public function testFormatsASingleService()
+    public function testFormatsASingleService(): void
     {
         $serviceConfig = [
-            'class'     => __CLASS__,
+            'class'     => self::class,
             'singleton' => false,
             'arguments' => ['argument1', 'argument2'],
             'method'    => ['setSomething' => ['value']],
@@ -19,16 +21,16 @@ final class ServiceConfigTest extends PHPUnit_Framework_TestCase
 
         $config = new ServiceConfig(['service_name' => $serviceConfig]);
 
-        assertEquals(
+        $this->assertEquals(
             [new ServiceDefinition('service_name', $serviceConfig)],
             iterator_to_array($config)
         );
     }
 
-    public function testItProvidesAListOfKeys()
+    public function testItProvidesAListOfKeys(): void
     {
         $serviceConfig = [
-            'class'     => __CLASS__,
+            'class'     => self::class,
             'singleton' => false,
             'arguments' => ['argument1', 'argument2'],
             'method'    => ['setSomething' => ['value']],
@@ -39,15 +41,15 @@ final class ServiceConfigTest extends PHPUnit_Framework_TestCase
             'service2' => $serviceConfig,
         ]);
 
-        assertEquals(['service1', 'service2'], $config->getKeys());
+        $this->assertSame(['service1', 'service2'], $config->getKeys());
     }
 
-    public function testDefaultValueForSingletonCanBeSetToTrue()
+    public function testDefaultValueForSingletonCanBeSetToTrue(): void
     {
-        $serviceConfig = ['class' => __CLASS__];
+        $serviceConfig = ['class' => self::class];
 
         $config = new ServiceConfig(['service_name' => $serviceConfig], true);
 
-        assertTrue(iterator_to_array($config)[0]->isSingleton());
+        $this->assertTrue(iterator_to_array($config)[0]->isSingleton());
     }
 }

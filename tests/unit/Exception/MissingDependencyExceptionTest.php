@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\Exception;
 use TomPHP\ContainerConfigurator\Exception\MissingDependencyException;
 
-final class MissingDependencyExceptionTest extends PHPUnit_Framework_TestCase
+final class MissingDependencyExceptionTest extends TestCase
 {
-    public function testItImplementsTheBaseExceptionType()
+    public function testItImplementsTheBaseExceptionType(): void
     {
-        assertInstanceOf(Exception::class, new MissingDependencyException());
+        $this->assertInstanceOf(Exception::class, new MissingDependencyException());
     }
 
-    public function testItIsALogicException()
+    public function testItIsALogicException(): void
     {
-        assertInstanceOf(LogicException::class, new MissingDependencyException());
+        $this->assertInstanceOf(LogicException::class, new MissingDependencyException());
     }
 
-    public function testItCanBeCreatedFromPackageName()
+    public function testItCanBeCreatedFromPackageName(): void
     {
-        assertSame(
+        $this->assertSame(
             'The package "foo/bar" is missing. Please run "composer require foo/bar" to install it.',
             MissingDependencyException::fromPackageName('foo/bar')->getMessage()
         );

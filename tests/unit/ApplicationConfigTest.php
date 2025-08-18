@@ -1,23 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator;
 
 use InvalidArgumentException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use tests\support\TestFileCreator;
 use TomPHP\ContainerConfigurator\ApplicationConfig;
 use TomPHP\ContainerConfigurator\Exception\ReadOnlyException;
 
-final class ApplicationConfigTest extends PHPUnit_Framework_TestCase
+final class ApplicationConfigTest extends TestCase
 {
     use TestFileCreator;
 
-    /**
-     * @var ApplicationConfig
-     */
-    private $config;
+    private \TomPHP\ContainerConfigurator\ApplicationConfig|array $config;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->config = new ApplicationConfig([
             'keyA'   => 'valueA',
@@ -28,39 +27,39 @@ final class ApplicationConfigTest extends PHPUnit_Framework_TestCase
         ]);
     }
 
-    public function testItProvidesAccessToSimpleScalarValues()
+    public function testItProvidesAccessToSimpleScalarValues(): void
     {
-        assertEquals('valueA', $this->config['keyA']);
+        $this->assertEquals('valueA', $this->config['keyA']);
     }
 
-    public function testItProvidesAccessToArrayValues()
+    public function testItProvidesAccessToArrayValues(): void
     {
-        assertEquals(['keyB' => 'valueB', 'null' => null], $this->config['group1']);
+        $this->assertEquals(['keyB' => 'valueB', 'null' => null], $this->config['group1']);
     }
 
-    public function testItProvidesToSubValuesUsingDotNotation()
+    public function testItProvidesToSubValuesUsingDotNotation(): void
     {
-        assertEquals('valueB', $this->config['group1.keyB']);
+        $this->assertEquals('valueB', $this->config['group1.keyB']);
     }
 
-    public function testItSaysIfAnEntryIsSet()
+    public function testItSaysIfAnEntryIsSet(): void
     {
-        assertTrue(isset($this->config['group1.keyB']));
+        $this->assertArrayHasKey('group1.keyB', $this->config);
     }
 
-    public function testItSaysIfAnEntryIsNotSet()
+    public function testItSaysIfAnEntryIsNotSet(): void
     {
-        assertFalse(isset($this->config['bad.entry']));
+        $this->assertArrayNotHasKey('bad.entry', $this->config);
     }
 
-    public function testItSaysIfAnEntryIsSetIfItIsFalsey()
+    public function testItSaysIfAnEntryIsSetIfItIsFalsey(): void
     {
-        assertTrue(isset($this->config['group1.null']));
+        $this->assertArrayHasKey('group1.null', $this->config);
     }
 
-    public function testItReturnsAllItsKeys()
+    public function testItReturnsAllItsKeys(): void
     {
-        assertEquals(
+        $this->assertSame(
             [
                 'keyA',
                 'group1',
@@ -71,9 +70,9 @@ final class ApplicationConfigTest extends PHPUnit_Framework_TestCase
         );
     }
 
-    public function testItCanBeConvertedToAnArray()
+    public function testItCanBeConvertedToAnArray(): void
     {
-        assertEquals(
+        $this->assertEquals(
             [
                 'keyA'   => 'valueA',
                 'group1' => [
@@ -85,66 +84,66 @@ final class ApplicationConfigTest extends PHPUnit_Framework_TestCase
         );
     }
 
-    public function testItWorksWithADifferentSeperator()
+    public function testItWorksWithADifferentSeperator(): void
     {
         $this->config = new ApplicationConfig([
             'group1' => [
                 'keyA' => 'valueA',
             ],
         ], '->');
-        assertEquals('valueA', $this->config['group1->keyA']);
+        $this->assertEquals('valueA', $this->config['group1->keyA']);
     }
 
-    public function testItThrowsForAnEmptySeparatorOnConstruction()
+    public function testItThrowsForAnEmptySeparatorOnConstruction(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
         $this->config = new ApplicationConfig([], '');
     }
 
-    public function testItCannotHaveAValueSet()
+    public function testItCannotHaveAValueSet(): void
     {
         $this->expectException(ReadOnlyException::class);
 
         $this->config['key'] = 'value';
     }
 
-    public function testItCannotHaveAValueRemoved()
+    public function testItCannotHaveAValueRemoved(): void
     {
         $this->expectException(ReadOnlyException::class);
 
         unset($this->config['keyA']);
     }
 
-    public function testItMergesInNewConfig()
+    public function testItMergesInNewConfig(): void
     {
-        $config = new ApplicationConfig([
+        $applicationConfig = new ApplicationConfig([
             'group' => [
                 'keyA' => 'valueA',
                 'keyB' => 'valueX',
             ],
         ]);
 
-        $config->merge(['group' => ['keyB' => 'valueB']]);
+        $applicationConfig->merge(['group' => ['keyB' => 'valueB']]);
 
-        assertSame('valueA', $config['group.keyA']);
-        assertSame('valueB', $config['group.keyB']);
+        $this->assertSame('valueA', $applicationConfig['group.keyA']);
+        $this->assertSame('valueB', $applicationConfig['group.keyB']);
     }
 
-    public function testItUpdatesTheSeparator()
+    public function testItUpdatesTheSeparator(): void
     {
-        $config = new ApplicationConfig([
+        $applicationConfig = new ApplicationConfig([
             'group' => [
                 'keyA' => 'valueA',
             ],
         ]);
 
-        $config->setSeparator('/');
+        $applicationConfig->setSeparator('/');
 
-        assertSame('valueA', $config['group/keyA']);
+        $this->assertSame('valueA', $applicationConfig['group/keyA']);
     }
 
-    public function testItThrowsForAnEmptySeparatorWhenSettingSeparator()
+    public function testItThrowsForAnEmptySeparatorWhenSettingSeparator(): void
     {
         $this->expectException(InvalidArgumentException::class);
 

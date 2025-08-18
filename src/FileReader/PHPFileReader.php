@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\FileReader;
 
 use Assert\Assertion;
@@ -10,9 +12,9 @@ use TomPHP\ContainerConfigurator\Exception\InvalidConfigException;
  */
 final class PHPFileReader implements FileReader
 {
-    private $filename;
+    private string $filename;
 
-    public function read($filename)
+    public function read(string $filename): mixed
     {
         Assertion::file($filename);
 
@@ -25,7 +27,7 @@ final class PHPFileReader implements FileReader
         return $config;
     }
 
-    private function assertConfigIsValid($config)
+    private function assertConfigIsValid(mixed $config): void
     {
         if (!is_array($config)) {
             throw InvalidConfigException::fromPHPFileError($this->filename);

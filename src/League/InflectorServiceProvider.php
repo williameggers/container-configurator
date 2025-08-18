@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\League;
 
 use League\Container\ServiceProvider\AbstractServiceProvider;
@@ -12,38 +14,35 @@ use TomPHP\ContainerConfigurator\InflectorDefinition;
  */
 final class InflectorServiceProvider extends AbstractServiceProvider implements BootableServiceProviderInterface
 {
-    /**
-     * @var InflectorConfig
-     */
-    private $config;
-
-    /**
-     * @param InflectorConfig $config
-     */
-    public function __construct(InflectorConfig $config)
-    {
-        $this->config = $config;
+    public function __construct(
+        /**
+         * @var InflectorConfig<int|string,InflectorDefinition>
+         */
+        private readonly \TomPHP\ContainerConfigurator\InflectorConfig $inflectorConfig
+    ) {
     }
 
-    public function register()
+    public function provides(string $id): bool
+    {
+        return false;
+    }
+
+    public function register(): void
     {
     }
 
-    public function boot()
+    public function boot(): void
     {
-        foreach ($this->config as $definition) {
+        foreach ($this->inflectorConfig as $definition) {
             $this->configureInterface($definition);
         }
     }
 
-    /**
-     * @param InflectorDefinition $definition
-     */
-    private function configureInterface(InflectorDefinition $definition)
+    private function configureInterface(InflectorDefinition $inflectorDefinition): void
     {
-        foreach ($definition->getMethods() as $method => $args) {
+        foreach ($inflectorDefinition->getMethods() as $method => $args) {
             $this->addInflectorMethod(
-                $definition->getInterface(),
+                $inflectorDefinition->getInterface(),
                 $method,
                 $args
             );
@@ -51,11 +50,9 @@ final class InflectorServiceProvider extends AbstractServiceProvider implements 
     }
 
     /**
-     * @param string $interface
-     * @param string $method
-     * @param array  $args
+     * @param array<mixed> $args
      */
-    private function addInflectorMethod($interface, $method, array $args)
+    private function addInflectorMethod(string $interface, string $method, array $args): void
     {
         $this->getContainer()
             ->inflector($interface)

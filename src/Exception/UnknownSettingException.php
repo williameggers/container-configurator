@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\Exception;
 
 use DomainException;
@@ -12,12 +14,9 @@ final class UnknownSettingException extends DomainException implements Exception
     /**
      * @internal
      *
-     * @param string   $setting
      * @param string[] $knownSettings
-     *
-     * @return self
      */
-    public static function fromSetting($setting, array $knownSettings)
+    public static function fromSetting(string $setting, array $knownSettings): self
     {
         return self::create(
             'Setting "%s" is unknown; valid settings are %s.',

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\acceptance;
 
 use tests\mocks\ExampleClass;
@@ -9,7 +11,7 @@ use TomPHP\ContainerConfigurator\Configurator;
 
 trait SupportsInflectorConfig
 {
-    public function testItSetsUpAnInflectorForClassNameFactory()
+    public function testItSetsUpAnInflectorForClassNameFactory(): void
     {
         $config = [
             'di' => [
@@ -30,13 +32,13 @@ trait SupportsInflectorConfig
             ->configFromArray($config)
             ->to($this->container);
 
-        assertEquals(
+        $this->assertEquals(
             'test_value',
             $this->container->get('example')->getValue()
         );
     }
 
-    public function testItSetsUpAnInflectorForServiceFactory()
+    public function testItSetsUpAnInflectorForServiceFactory(): void
     {
         $config = [
             'class_name' => ExampleClass::class,
@@ -61,13 +63,13 @@ trait SupportsInflectorConfig
             ->configFromArray($config)
             ->to($this->container);
 
-        assertEquals(
+        $this->assertEquals(
             'test_value',
             $this->container->get('example')->getValue()
         );
     }
 
-    public function testItResolvesInflectorArguments()
+    public function testItResolvesInflectorArguments(): void
     {
         $config = [
             'argument' => 'test_value',
@@ -89,13 +91,13 @@ trait SupportsInflectorConfig
             ->configFromArray($config)
             ->to($this->container);
 
-        assertEquals(
+        $this->assertEquals(
             'test_value',
             $this->container->get('example')->getValue()
         );
     }
 
-    public function testItSetsUpAnInflectorUsingCustomInflectorsKey()
+    public function testItSetsUpAnInflectorUsingCustomInflectorsKey(): void
     {
         $config = [
             'di' => [
@@ -117,7 +119,7 @@ trait SupportsInflectorConfig
             ->withSetting(Configurator::SETTING_INFLECTORS_KEY, 'inflectors')
             ->to($this->container);
 
-        assertEquals(
+        $this->assertEquals(
             'test_value',
             $this->container->get('example')->getValue()
         );

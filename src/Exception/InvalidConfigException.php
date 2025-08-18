@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
@@ -11,50 +13,40 @@ final class InvalidConfigException extends LogicException implements Exception
 
     /**
      * @internal
-     *
-     * @param string $filename
-     *
-     * @return self
      */
-    public static function fromPHPFileError($filename)
+    public static function fromPHPFileError(string $filename): static
     {
         return self::create('"%s" does not return a PHP array.', [$filename]);
     }
 
     /**
      * @internal
-     *
-     * @param string $filename
-     * @param string $message
-     *
-     * @return self
      */
-    public static function fromJSONFileError($filename, $message)
+    public static function fromJSONFileError(string $filename, string $message): static
     {
         return self::create('Invalid JSON in "%s": %s', [$filename, $message]);
     }
 
     /**
      * @internal
-     *
-     * @param string $filename
-     * @param string $message
-     *
-     * @return self
      */
-    public static function fromYAMLFileError($filename, $message)
+    public static function fromHJSONFileError(string $filename, string $message): static
+    {
+        return self::create('Invalid HJSON in "%s": %s', [$filename, $message]);
+    }
+
+    /**
+     * @internal
+     */
+    public static function fromYAMLFileError(string $filename, string $message): static
     {
         return self::create('Invalid YAML in "%s": %s', [$filename, $message]);
     }
 
     /**
      * @internal
-     *
-     * @param string $name
-     *
-     * @return self
      */
-    public static function fromNameWhenClassAndFactorySpecified($name)
+    public static function fromNameWhenClassAndFactorySpecified(string $name): static
     {
         return self::create(
             'Both "class" and "factory" are specified for service "%s"; these cannot be used together.',
@@ -64,12 +56,8 @@ final class InvalidConfigException extends LogicException implements Exception
 
     /**
      * @internal
-     *
-     * @param string $name
-     *
-     * @return self
      */
-    public static function fromNameWhenClassAndServiceSpecified($name)
+    public static function fromNameWhenClassAndServiceSpecified(string $name): static
     {
         return self::create(
             'Both "class" and "service" are specified for service "%s"; these cannot be used together.',
@@ -79,12 +67,8 @@ final class InvalidConfigException extends LogicException implements Exception
 
     /**
      * @internal
-     *
-     * @param string $name
-     *
-     * @return self
      */
-    public static function fromNameWhenFactoryAndServiceSpecified($name)
+    public static function fromNameWhenFactoryAndServiceSpecified(string $name): self
     {
         return self::create(
             'Both "factory" and "service" are specified for service "%s"; these cannot be used together.',

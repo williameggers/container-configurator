@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator;
 
 use Assert\Assertion;
@@ -9,38 +11,37 @@ use TomPHP\ContainerConfigurator\Exception\UnknownSettingException;
 
 final class Configurator
 {
-    const SETTING_PREFIX                     = 'config_prefix';
-    const SETTING_SEPARATOR                  = 'config_separator';
-    const SETTING_SERVICES_KEY               = 'services_key';
-    const SETTING_INFLECTORS_KEY             = 'inflectors_key';
-    const SETTING_DEFAULT_SINGLETON_SERVICES = 'default_singleton_services';
+    public const SETTING_PREFIX                     = 'config_prefix';
 
-    const FILE_READERS = [
-        '.json' => FileReader\JSONFileReader::class,
-        '.php'  => FileReader\PHPFileReader::class,
-        '.yaml' => FileReader\YAMLFileReader::class,
-        '.yml'  => FileReader\YAMLFileReader::class,
+    public const SETTING_SEPARATOR                  = 'config_separator';
+
+    public const SETTING_SERVICES_KEY               = 'services_key';
+
+    public const SETTING_INFLECTORS_KEY             = 'inflectors_key';
+
+    public const SETTING_DEFAULT_SINGLETON_SERVICES = 'default_singleton_services';
+
+    public const FILE_READERS = [
+        '.json'  => FileReader\JSONFileReader::class,
+        '.hjson' => FileReader\HJSONFileReader::class,
+        '.php'   => FileReader\PHPFileReader::class,
+        '.yaml'  => FileReader\YAMLFileReader::class,
+        '.yml'   => FileReader\YAMLFileReader::class,
     ];
 
-    const CONTAINER_ADAPTERS = [
+    public const CONTAINER_ADAPTERS = [
         \League\Container\Container::class => League\LeagueContainerAdapter::class,
         \Pimple\Container::class           => Pimple\PimpleContainerAdapter::class,
     ];
 
-    /**
-     * @var ApplicationConfig
-     */
-    private $config;
+    private \TomPHP\ContainerConfigurator\ApplicationConfig $applicationConfig;
+
+    private ?\TomPHP\ContainerConfigurator\FileReader\ReaderFactory $readerFactory = null;
 
     /**
-     * @var FileReader\ReaderFactory
+     * @var array<string,mixed>
      */
-    private $readerFactory;
-
-    /**
-     * @var mixed[]
-     */
-    private $settings = [
+    private array $settings = [
         self::SETTING_PREFIX                     => 'config',
         self::SETTING_SEPARATOR                  => '.',
         self::SETTING_SERVICES_KEY               => 'di.services',
@@ -49,65 +50,55 @@ final class Configurator
     ];
 
     /**
-     * @var string[]
+     * @var array<string,string>
      */
-    private $fileReaders = self::FILE_READERS;
+    private array $fileReaders = self::FILE_READERS;
 
     /**
-     * @var string[]
+     * @var array<string,string>
      */
-    private $containerAdapters = self::CONTAINER_ADAPTERS;
+    private array $containerAdapters = self::CONTAINER_ADAPTERS;
 
-    /**
-     * @var string
-     */
-    private static $containerIdentifier;
+    private static ?string $containerIdentifier = null;
 
-    /**
-     * @return Configurator
-     */
-    public static function apply()
+    public static function apply(): self
     {
         return new self();
     }
 
     private function __construct()
     {
-        $this->config = new ApplicationConfig([]);
+        $this->applicationConfig = new ApplicationConfig([]);
     }
 
-    /**
-     * @return string
-     */
-    public static function container()
+    public static function container(): string
     {
-        if (!self::$containerIdentifier) {
-            self::$containerIdentifier = uniqid(__CLASS__ . '::CONTAINER_ID::');
+        if (self::$containerIdentifier === null
+            || self::$containerIdentifier === ''
+            || self::$containerIdentifier === '0'
+        ) {
+            self::$containerIdentifier = uniqid(self::class . '::CONTAINER_ID::');
         }
 
         return self::$containerIdentifier;
     }
 
     /**
-     * @param array $config
-     *
-     * @return $this
+     * @param array<mixed> $config
      */
-    public function configFromArray(array $config)
+    public function configFromArray(array $config): self
     {
-        $this->config->merge($config);
+        $this->applicationConfig->merge($config);
 
         return $this;
     }
 
     /**
-     * @param string $filename
-     *
      * @throws InvalidArgumentException
      *
      * @return $this
      */
-    public function configFromFile($filename)
+    public function configFromFile(string $filename): self
     {
         Assertion::file($filename);
 
@@ -117,42 +108,37 @@ final class Configurator
     }
 
     /**
-     * @param string $pattern
-     *
      * @throws NoMatchingFilesException
      * @throws InvalidArgumentException
      *
      * @return $this
      */
-    public function configFromFiles($pattern)
+    public function configFromFiles(string $pattern): self
     {
         Assertion::string($pattern);
 
-        $locator = new FileReader\FileLocator();
+        $fileLocator = new FileReader\FileLocator();
 
-        $files = $locator->locate($pattern);
+        $files = $fileLocator->locate($pattern);
 
-        if (count($files) === 0) {
+        if ($files === []) {
             throw NoMatchingFilesException::fromPattern($pattern);
         }
 
-        foreach ($files as $filename) {
-            $this->readFileAndMergeConfig($filename);
+        foreach ($files as $file) {
+            $this->readFileAndMergeConfig($file);
         }
 
         return $this;
     }
 
     /**
-     * @param string $name
-     * @param mixed  $value
-     *
      * @throws UnknownSettingException
      * @throws InvalidArgumentException
      *
      * @return $this
      */
-    public function withSetting($name, $value)
+    public function withSetting(string $name, mixed $value): self
     {
         Assertion::string($name);
         Assertion::scalar($value);
@@ -167,12 +153,9 @@ final class Configurator
     }
 
     /**
-     * @param string $extension
-     * @param string $className
-     *
      * @return $this
      */
-    public function withFileReader($extension, $className)
+    public function withFileReader(string $extension, string $className): self
     {
         $this->fileReaders[$extension] = $className;
 
@@ -180,67 +163,63 @@ final class Configurator
     }
 
     /**
-     * @param string $containerName
-     * @param string $adapterName
-     *
      * @return $this
      */
-    public function withContainerAdapter($containerName, $adapterName)
+    public function withContainerAdapter(string $containerName, string $adapterName): self
     {
         $this->containerAdapters[$containerName] = $adapterName;
 
         return $this;
     }
 
-    /**
-     * @param object $container
-     *
-     * @return void
-     */
-    public function to($container)
+    public function to(object $container): void
     {
-        $this->config->setSeparator($this->settings[self::SETTING_SEPARATOR]);
+        if (is_string($this->settings[self::SETTING_SEPARATOR])
+            && (isset($this->settings[self::SETTING_SEPARATOR])
+            && ($this->settings[self::SETTING_SEPARATOR] !== ''
+            && $this->settings[self::SETTING_SEPARATOR] !== '0'))
+        ) {
+            $this->applicationConfig->setSeparator($this->settings[self::SETTING_SEPARATOR]);
+        }
 
-        $factory = new ContainerAdapterFactory($this->containerAdapters);
+        $containerAdapterFactory = new ContainerAdapterFactory($this->containerAdapters);
 
-        $configurator = $factory->create($container);
+        $containerAdapter = $containerAdapterFactory->create($container);
 
-        $configurator->addApplicationConfig($this->config, $this->settings[self::SETTING_PREFIX]);
+        if (!is_string($this->settings[self::SETTING_PREFIX])) {
+            throw new \InvalidArgumentException('The SETTING_PREFIX must be a string.');
+        }
 
-        if (isset($this->config[$this->settings[self::SETTING_SERVICES_KEY]])) {
-            $configurator->addServiceConfig(new ServiceConfig(
-                $this->config[$this->settings[self::SETTING_SERVICES_KEY]],
-                $this->settings[self::SETTING_DEFAULT_SINGLETON_SERVICES]
+        $containerAdapter->addApplicationConfig($this->applicationConfig, $this->settings[self::SETTING_PREFIX]);
+
+        if (isset($this->applicationConfig[$this->settings[self::SETTING_SERVICES_KEY]])) {
+            $containerAdapter->addServiceConfig(new ServiceConfig(
+                $this->applicationConfig[$this->settings[self::SETTING_SERVICES_KEY]], // @phpstan-ignore-line
+                (bool) $this->settings[self::SETTING_DEFAULT_SINGLETON_SERVICES]
             ));
         }
 
-        if (isset($this->config[$this->settings[self::SETTING_INFLECTORS_KEY]])) {
-            $configurator->addInflectorConfig(new InflectorConfig(
-                $this->config[$this->settings[self::SETTING_INFLECTORS_KEY]]
+        if (isset($this->applicationConfig[$this->settings[self::SETTING_INFLECTORS_KEY]])) {
+            $containerAdapter->addInflectorConfig(new InflectorConfig(
+                $this->applicationConfig[$this->settings[self::SETTING_INFLECTORS_KEY]] // @phpstan-ignore-line
             ));
         }
     }
 
-    /**
-     * @param string $filename
-     *
-     * @return void
-     */
-    private function readFileAndMergeConfig($filename)
+    private function readFileAndMergeConfig(string $filename): void
     {
-        $reader = $this->getReaderFor($filename);
+        $fileReader = $this->getReaderFor($filename);
+        $config     = $fileReader->read($filename);
+        if (!is_array($config)) {
+            throw new \InvalidArgumentException(sprintf("Configuration file '%s' did not return an array.", $filename));
+        }
 
-        $this->config->merge($reader->read($filename));
+        $this->applicationConfig->merge($config);
     }
 
-    /**
-     * @param string $filename
-     *
-     * @return FileReader\FileReader
-     */
-    private function getReaderFor($filename)
+    private function getReaderFor(string $filename): FileReader\FileReader
     {
-        if (!$this->readerFactory) {
+        if (!$this->readerFactory instanceof \TomPHP\ContainerConfigurator\FileReader\ReaderFactory) {
             $this->readerFactory = new FileReader\ReaderFactory($this->fileReaders);
         }
 

@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\Exception;
 use TomPHP\ContainerConfigurator\Exception\NotClassDefinitionException;
 
-final class NotClassDefinitionExceptionTest extends PHPUnit_Framework_TestCase
+final class NotClassDefinitionExceptionTest extends TestCase
 {
-    public function testItImplementsTheBaseExceptionType()
+    public function testItImplementsTheBaseExceptionType(): void
     {
-        assertInstanceOf(Exception::class, new NotClassDefinitionException());
+        $this->assertInstanceOf(Exception::class, new NotClassDefinitionException());
     }
 
-    public function testItIsALogicException()
+    public function testItIsALogicException(): void
     {
-        assertInstanceOf(LogicException::class, new NotClassDefinitionException());
+        $this->assertInstanceOf(LogicException::class, new NotClassDefinitionException());
     }
 
-    public function testItCanBeCreatedFromThePatterns()
+    public function testItCanBeCreatedFromThePatterns(): void
     {
-        assertSame(
+        $this->assertSame(
             'Service configuration for "example-service" did not create a class definition.',
             NotClassDefinitionException::fromServiceName('example-service')->getMessage()
         );

@@ -1,29 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator;
 
 use ArrayIterator;
 use Assert\Assertion;
 use InvalidArgumentException;
 use IteratorAggregate;
+use Traversable;
 
 /**
  * @internal
+ *
+ * @implements IteratorAggregate<int,ServiceDefinition>
  */
 final class ServiceConfig implements IteratorAggregate
 {
     /**
      * @var ServiceDefinition[]
      */
-    private $config = [];
+    private array $config = [];
 
     /**
-     * @param array $config
-     * @param bool  $singletonDefault
+     * @param array<string,array{
+     *  singleton?:bool,
+     *  factory?:mixed,
+     *  service?:mixed,
+     *  arguments?:array<mixed>,
+     *  methods?:array<string,array<mixed>>
+     * }> $config
      *
      * @throws InvalidArgumentException
      */
-    public function __construct(array $config, $singletonDefault = false)
+    public function __construct(array $config, bool $singletonDefault = false)
     {
         Assertion::boolean($singletonDefault);
 
@@ -33,19 +43,17 @@ final class ServiceConfig implements IteratorAggregate
     }
 
     /**
-     * @return array
+     * @return array<int|string,string>
      */
-    public function getKeys()
+    public function getKeys(): array
     {
         return array_map(
-            function (ServiceDefinition $definition) {
-                return $definition->getName();
-            },
+            fn (ServiceDefinition $serviceDefinition): string => $serviceDefinition->getName(),
             $this->config
         );
     }
 
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         return new ArrayIterator($this->config);
     }

@@ -2,7 +2,23 @@
 All notable changes to this project will be documented in this file.
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-## 1.0.0 - 2015-19-31
+## 2.0.0 - 2025-08-12
+
+### Changed
+
+  * Minimum supported PHP version is now `8.1`.
+  * Upgraded dependencies:
+    * beberlei/assert to `^3.3`
+    * symfony/yaml to `^6.4`
+    * tomphp/exception-constructor-tools to `^2.0`
+
+### Added
+
+  * `TomPHP\ContainerConfigurator\FileReader\HJSONFileReader` for reading
+     HJSON files (requires `laktak/hjson` to be installed).
+  * `phpstan/phpstan` applied at max level with code cleanup
+
+## 1.0.0 - 2015-09-31
 ### Added
   * Inflector support for Pimple.
   * Custom file readers with `withFileReader(string $extension, string $readerClass);`.

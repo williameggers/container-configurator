@@ -1,67 +1,69 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\Exception;
 
 use LogicException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\Exception;
 use TomPHP\ContainerConfigurator\Exception\InvalidConfigException;
 
-final class InvalidConfigExceptionTest extends PHPUnit_Framework_TestCase
+final class InvalidConfigExceptionTest extends TestCase
 {
-    public function testItImplementsTheBaseExceptionType()
+    public function testItImplementsTheBaseExceptionType(): void
     {
-        assertInstanceOf(Exception::class, new InvalidConfigException());
+        $this->assertInstanceOf(Exception::class, new InvalidConfigException());
     }
 
-    public function testItIsALogicException()
+    public function testItIsALogicException(): void
     {
-        assertInstanceOf(LogicException::class, new InvalidConfigException());
+        $this->assertInstanceOf(LogicException::class, new InvalidConfigException());
     }
 
-    public function testItCanBeCreatedFromTheFileName()
+    public function testItCanBeCreatedFromTheFileName(): void
     {
-        assertSame(
+        $this->assertSame(
             '"example.cfg" does not return a PHP array.',
             InvalidConfigException::fromPHPFileError('example.cfg')->getMessage()
         );
     }
 
-    public function testItCanBeCreatedWithAJSONFileError()
+    public function testItCanBeCreatedWithAJSONFileError(): void
     {
-        assertSame(
+        $this->assertSame(
             'Invalid JSON in "example.json": JSON Error Message',
             InvalidConfigException::fromJSONFileError('example.json', 'JSON Error Message')->getMessage()
         );
     }
 
-    public function testItCanBeCreatedFromYAMLFileError()
+    public function testItCanBeCreatedFromYAMLFileError(): void
     {
-        assertSame(
+        $this->assertSame(
             'Invalid YAML in "example.yml": YAML Error Message',
             InvalidConfigException::fromYAMLFileError('example.yml', 'YAML Error Message')->getMessage()
         );
     }
 
-    public function testItCanBeCreatedFromNameWhenClassAndFactoryAreSpecified()
+    public function testItCanBeCreatedFromNameWhenClassAndFactoryAreSpecified(): void
     {
-        assertSame(
+        $this->assertSame(
             'Both "class" and "factory" are specified for service "example"; these cannot be used together.',
             InvalidConfigException::fromNameWhenClassAndFactorySpecified('example')->getMessage()
         );
     }
 
-    public function testItCanBeCreatedFromNameWhenClassAndServiceAreSpecified()
+    public function testItCanBeCreatedFromNameWhenClassAndServiceAreSpecified(): void
     {
-        assertSame(
+        $this->assertSame(
             'Both "class" and "service" are specified for service "example"; these cannot be used together.',
             InvalidConfigException::fromNameWhenClassAndServiceSpecified('example')->getMessage()
         );
     }
 
-    public function testItCanBeCreatedFromNameWhenFactoryAndServiceAreSpecified()
+    public function testItCanBeCreatedFromNameWhenFactoryAndServiceAreSpecified(): void
     {
-        assertSame(
+        $this->assertSame(
             'Both "factory" and "service" are specified for service "example"; these cannot be used together.',
             InvalidConfigException::fromNameWhenFactoryAndServiceSpecified('example')->getMessage()
         );

@@ -7,7 +7,7 @@ namespace TomPHP\ContainerConfigurator\Exception;
 use LogicException;
 use TomPHP\ExceptionConstructorTools;
 
-final class NotContainerAdapterException extends LogicException implements Exception
+final class NotFactoryException extends LogicException implements Exception
 {
     use ExceptionConstructorTools;
 
@@ -17,7 +17,7 @@ final class NotContainerAdapterException extends LogicException implements Excep
     public static function fromClassName(string $name): self
     {
         return self::create(
-            'Class "%s" is not a container adapter.',
+            'Class "%s" is not a factory.',
             [$name]
         );
     }

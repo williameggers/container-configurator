@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\FileReader;
 
 use Assert\Assertion;
@@ -22,14 +24,14 @@ final class YAMLFileReader implements FileReader
         }
     }
 
-    public function read($filename)
+    public function read(string $filename): mixed
     {
         Assertion::file($filename);
 
         try {
-            $config = Yaml\Yaml::parse(file_get_contents($filename));
-        } catch (Yaml\Exception\ParseException $exception) {
-            throw InvalidConfigException::fromYAMLFileError($filename, $exception->getMessage());
+            $config = Yaml\Yaml::parse(file_get_contents($filename) ?: '');
+        } catch (Yaml\Exception\ParseException $parseException) {
+            throw InvalidConfigException::fromYAMLFileError($filename, $parseException->getMessage());
         }
 
         return $config;

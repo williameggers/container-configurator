@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\Exception;
 
 use DomainException;
@@ -11,12 +13,8 @@ final class EntryDoesNotExistException extends DomainException implements Except
 
     /**
      * @internal
-     *
-     * @param string $key
-     *
-     * @return self
      */
-    public static function fromKey($key)
+    public static function fromKey(string $key): self
     {
         return self::create('No entry found for "%s".', [$key]);
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\League;
 
 use Assert\Assertion;
@@ -22,25 +24,25 @@ final class LeagueContainerAdapter implements ContainerAdapter
     /**
      * @param Container $container
      */
-    public function setContainer($container)
+    public function setContainer(object $container): void
     {
         $this->container = $container;
     }
 
-    public function addApplicationConfig(ApplicationConfig $config, $prefix = 'config')
+    public function addApplicationConfig(ApplicationConfig $applicationConfig, string $prefix = 'config'): void
     {
         Assertion::string($prefix);
 
-        $this->container->addServiceProvider(new ApplicationConfigServiceProvider($config, $prefix));
+        $this->container->addServiceProvider(new ApplicationConfigServiceProvider($applicationConfig, $prefix));
     }
 
-    public function addServiceConfig(ServiceConfig $config)
+    public function addServiceConfig(ServiceConfig $serviceConfig): void
     {
-        $this->container->addServiceProvider(new ServiceServiceProvider($config));
+        $this->container->addServiceProvider(new ServiceServiceProvider($serviceConfig));
     }
 
-    public function addInflectorConfig(InflectorConfig $config)
+    public function addInflectorConfig(InflectorConfig $inflectorConfig): void
     {
-        $this->container->addServiceProvider(new InflectorServiceProvider($config));
+        $this->container->addServiceProvider(new InflectorServiceProvider($inflectorConfig));
     }
 }

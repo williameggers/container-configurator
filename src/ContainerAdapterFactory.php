@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator;
 
 use TomPHP\ContainerConfigurator\Exception\NotContainerAdapterException;
@@ -11,13 +13,10 @@ use TomPHP\ContainerConfigurator\Exception\UnknownContainerException;
 final class ContainerAdapterFactory
 {
     /**
-     * @var array
+     * @param array<string,string> $config
      */
-    private $config;
-
-    public function __construct(array $config)
+    public function __construct(private readonly array $config)
     {
-        $this->config = $config;
     }
 
     /**
@@ -41,7 +40,7 @@ final class ContainerAdapterFactory
 
         if (!$class) {
             throw UnknownContainerException::fromContainerName(
-                get_class($container),
+                $container::class,
                 array_keys($this->config)
             );
         }

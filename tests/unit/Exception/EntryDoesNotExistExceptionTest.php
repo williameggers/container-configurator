@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator\Exception;
 
 use DomainException;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\Exception\EntryDoesNotExistException;
 use TomPHP\ContainerConfigurator\Exception\Exception;
 
-final class EntryDoesNotExistExceptionTest extends PHPUnit_Framework_TestCase
+final class EntryDoesNotExistExceptionTest extends TestCase
 {
-    public function testItImplementsTheBaseExceptionType()
+    public function testItImplementsTheBaseExceptionType(): void
     {
-        assertInstanceOf(Exception::class, new EntryDoesNotExistException());
+        $this->assertInstanceOf(Exception::class, new EntryDoesNotExistException());
     }
 
-    public function testItIsADomainException()
+    public function testItIsADomainException(): void
     {
-        assertInstanceOf(DomainException::class, new EntryDoesNotExistException());
+        $this->assertInstanceOf(DomainException::class, new EntryDoesNotExistException());
     }
 
-    public function testItCanBeCreatedFromTheKey()
+    public function testItCanBeCreatedFromTheKey(): void
     {
-        assertSame(
+        $this->assertSame(
             'No entry found for "example-key".',
             EntryDoesNotExistException::fromKey('example-key')->getMessage()
         );

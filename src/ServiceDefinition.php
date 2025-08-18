@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator;
 
 use Assert\Assertion;
@@ -11,128 +13,101 @@ use TomPHP\ContainerConfigurator\Exception\InvalidConfigException;
  */
 final class ServiceDefinition
 {
-    /**
-     * @var string
-     */
-    private $name;
+    private readonly string $name;
+
+    private readonly string $class;
+
+    private readonly bool $isSingleton;
+
+    private readonly bool $isFactory;
+
+    private readonly bool $isAlias;
 
     /**
-     * @var string
+     * @var array<mixed>
      */
-    private $class;
+    private readonly array $arguments;
 
     /**
-     * @var bool
+     * @var array<string,array<mixed>>
      */
-    private $isSingleton;
+    private readonly array $methods;
 
     /**
-     * @var bool
-     */
-    private $isFactory;
-
-    /**
-     * @var bool
-     */
-    private $isAlias;
-
-    /**
-     * @var array
-     */
-    private $arguments;
-
-    /**
-     * @var array
-     */
-    private $methods;
-
-    /**
-     * @param string $name
-     * @param array  $config
-     * @param bool   $singletonDefault
+     * @param array{
+     *  singleton?:bool,
+     *  factory?:mixed,
+     *  service?:mixed,
+     *  arguments?:array<mixed>,
+     *  methods?:array<string,
+     *  array<mixed>>
+     * } $config
      *
      * @throws InvalidArgumentException
      * @throws InvalidConfigException
      */
-    public function __construct($name, array $config, $singletonDefault = false)
+    public function __construct(string $name, array $config, bool $singletonDefault = false)
     {
         Assertion::string($name);
         Assertion::boolean($singletonDefault);
 
         $this->name        = $name;
         $this->class       = $this->className($name, $config);
-        $this->isSingleton = isset($config['singleton']) ? $config['singleton'] : $singletonDefault;
+        $this->isSingleton =
+            isset($config['singleton']) && is_bool($config['singleton']) ? $config['singleton'] : $singletonDefault;
         $this->isFactory   = isset($config['factory']);
         $this->isAlias     = isset($config['service']);
-        $this->arguments   = isset($config['arguments']) ? $config['arguments'] : [];
-        $this->methods     = isset($config['methods']) ? $config['methods'] : [];
+        $this->arguments   = isset($config['arguments']) && is_array($config['arguments']) ? $config['arguments'] : [];
+        $this->methods     = isset($config['methods']) && is_array($config['methods']) ? $config['methods'] : [];
     }
 
-    /**
-     * @return string
-     */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * @return string
-     */
-    public function getClass()
+    public function getClass(): string
     {
         return $this->class;
     }
 
-    /**
-     * @return bool
-     */
-    public function isSingleton()
+    public function isSingleton(): bool
     {
         return $this->isSingleton;
     }
 
-    /**
-     * @return bool
-     */
-    public function isFactory()
+    public function isFactory(): bool
     {
         return $this->isFactory;
     }
 
-    /**
-     * @return bool
-     */
-    public function isAlias()
+    public function isAlias(): bool
     {
         return $this->isAlias;
     }
 
     /**
-     * @return array
+     * @return array<mixed>
      */
-    public function getArguments()
+    public function getArguments(): array
     {
         return $this->arguments;
     }
 
     /**
-     * @return array
+     * @return array<string,array<mixed>>
      */
-    public function getMethods()
+    public function getMethods(): array
     {
         return $this->methods;
     }
 
     /**
-     * @param string $name
-     * @param array  $config
+     * @param array<string,mixed> $config
      *
      * @throws InvalidConfigException
-     *
-     * @return string
      */
-    private function className($name, array $config)
+    private function className(string $name, array $config): string
     {
         if (isset($config['class']) && isset($config['factory'])) {
             throw InvalidConfigException::fromNameWhenClassAndFactorySpecified($name);
@@ -146,15 +121,15 @@ final class ServiceDefinition
             throw InvalidConfigException::fromNameWhenFactoryAndServiceSpecified($name);
         }
 
-        if (isset($config['service'])) {
+        if (isset($config['service']) && is_string($config['service'])) {
             return $config['service'];
         }
 
-        if (isset($config['class'])) {
+        if (isset($config['class']) && is_string($config['class'])) {
             return $config['class'];
         }
 
-        if (isset($config['factory'])) {
+        if (isset($config['factory']) && is_string($config['factory'])) {
             return $config['factory'];
         }
 

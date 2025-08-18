@@ -9,46 +9,50 @@ use PHPUnit\Framework\TestCase;
 use tests\support\TestFileCreator;
 use TomPHP\ContainerConfigurator\Exception\InvalidConfigException;
 use TomPHP\ContainerConfigurator\FileReader\FileReader;
-use TomPHP\ContainerConfigurator\FileReader\JSONFileReader;
+use TomPHP\ContainerConfigurator\FileReader\HJSONFileReader;
 
-final class JSONFileReaderTest extends TestCase
+final class HJSONFileReaderTest extends TestCase
 {
     use TestFileCreator;
 
-    private \TomPHP\ContainerConfigurator\FileReader\JSONFileReader $jsonFileReader;
+    private \TomPHP\ContainerConfigurator\FileReader\HJSONFileReader $hjsonFileReader;
 
     protected function setUp(): void
     {
-        $this->jsonFileReader = new JSONFileReader();
+        $this->hjsonFileReader = new HJSONFileReader();
     }
 
     public function testItIsAFileReader(): void
     {
-        $this->assertInstanceOf(FileReader::class, $this->jsonFileReader);
+        $this->assertInstanceOf(FileReader::class, $this->hjsonFileReader);
     }
 
     public function testItThrowsIfFileDoesNotExist(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        $this->jsonFileReader->read('file-which-does-not-exist');
+        $this->hjsonFileReader->read('file-which-does-not-exist');
     }
 
     public function testReadsAPHPConfigFile(): void
     {
         $config = ['key' => 'value', 'sub' => ['key' => 'value']];
 
-        $this->createTestFile('config.json', json_encode($config));
+        $this->createTestFile('config.hjson', json_encode($config));
 
-        $this->assertEquals($config, $this->jsonFileReader->read($this->getTestPath('config.json')));
+        $this->assertEquals($config, $this->hjsonFileReader->read($this->getTestPath('config.hjson')));
     }
 
     public function testItThrowsIfTheConfigIsInvalid(): void
     {
         $this->expectException(InvalidConfigException::class);
 
-        $this->createTestFile('config.json', 'not json');
+        $invalidHjson = <<<HJSON
+        {
+                xxx
+        HJSON;
+        $this->createTestFile('config.hjson', $invalidHjson);
 
-        $this->jsonFileReader->read($this->getTestPath('config.json'));
+        $this->hjsonFileReader->read($this->getTestPath('config.hjson'));
     }
 }

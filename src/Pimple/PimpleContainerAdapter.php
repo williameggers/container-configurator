@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\Pimple;
 
 use Assert\Assertion;
@@ -8,6 +10,7 @@ use Pimple\Container;
 use TomPHP\ContainerConfigurator\ApplicationConfig;
 use TomPHP\ContainerConfigurator\Configurator;
 use TomPHP\ContainerConfigurator\ContainerAdapter;
+use TomPHP\ContainerConfigurator\Exception\NotFactoryException;
 use TomPHP\ContainerConfigurator\InflectorConfig;
 use TomPHP\ContainerConfigurator\InflectorDefinition;
 use TomPHP\ContainerConfigurator\ServiceConfig;
@@ -24,113 +27,109 @@ final class PimpleContainerAdapter implements ContainerAdapter
     private $container;
 
     /**
-     * @var Closure
+     * @var array<callable>
      */
-    private $inflectors = [];
+    private array $inflectors = [];
 
     /**
      * @param Container $container
      */
-    public function setContainer($container)
+    public function setContainer(object $container): void
     {
         $this->container = $container;
     }
 
-    public function addApplicationConfig(ApplicationConfig $config, $prefix = 'config')
+    public function addApplicationConfig(ApplicationConfig $applicationConfig, string $prefix = 'config'): void
     {
         Assertion::string($prefix);
 
-        if (!empty($prefix)) {
-            $prefix .= $config->getSeparator();
+        if ($prefix !== '' && $prefix !== '0') {
+            $this->container[$prefix] = $applicationConfig->asArray();
+            $prefix .= $applicationConfig->getSeparator();
         }
 
-        foreach ($config as $key => $value) {
+        foreach ($applicationConfig as $key => $value) {
+            // @phpstan-ignore-next-line
+            if (!is_string($key) && !is_int($key) && !($key instanceof \Stringable)) {
+                continue;
+            }
+
             $this->container[$prefix . $key] = $value;
         }
     }
 
-    public function addServiceConfig(ServiceConfig $config)
+    public function addServiceConfig(ServiceConfig $serviceConfig): void
     {
-        foreach ($config as $definition) {
+        foreach ($serviceConfig as $definition) {
             $this->addServiceToContainer($definition);
         }
     }
 
-    public function addInflectorConfig(InflectorConfig $config)
+    public function addInflectorConfig(InflectorConfig $inflectorConfig): void
     {
-        foreach ($config as $definition) {
+        foreach ($inflectorConfig as $definition) {
             $this->inflectors[$definition->getInterface()] = $this->createInflector($definition);
         }
     }
 
-    private function addServiceToContainer(ServiceDefinition $definition)
+    private function addServiceToContainer(ServiceDefinition $serviceDefinition): void
     {
-        $factory = $this->createFactory($definition);
+        $factory = $this->createFactory($serviceDefinition);
 
-        if (!$definition->isSingleton()) {
+        if (!$serviceDefinition->isSingleton()) {
             $factory = $this->container->factory($factory);
         }
 
-        $this->container[$definition->getName()] = $factory;
+        $this->container[$serviceDefinition->getName()] = $factory;
+    }
+
+    private function createFactory(ServiceDefinition $serviceDefinition): callable
+    {
+        if ($serviceDefinition->isFactory()) {
+            return $this->applyInflectors($this->createFactoryFactory($serviceDefinition));
+        }
+
+        if ($serviceDefinition->isAlias()) {
+            return $this->createAliasFactory($serviceDefinition);
+        }
+
+        return $this->applyInflectors($this->createInstanceFactory($serviceDefinition));
     }
 
     /**
-     * @param ServiceDefinition $definition
-     *
      * @return Closure
      */
-    private function createFactory(ServiceDefinition $definition)
+    private function createFactoryFactory(ServiceDefinition $serviceDefinition)
     {
-        if ($definition->isFactory()) {
-            return $this->applyInflectors($this->createFactoryFactory($definition));
-        }
-
-        if ($definition->isAlias()) {
-            return $this->createAliasFactory($definition);
-        }
-
-        return $this->applyInflectors($this->createInstanceFactory($definition));
-    }
-
-    /**
-     * @param ServiceDefinition $definition
-     *
-     * @return Closure
-     */
-    private function createFactoryFactory(ServiceDefinition $definition)
-    {
-        return function () use ($definition) {
-            $className = $definition->getClass();
+        return function () use ($serviceDefinition) {
+            $className = $serviceDefinition->getClass();
             $factory   = new $className();
+            if (!is_callable($factory)) {
+                throw NotFactoryException::fromClassName($className);
+            }
 
-            return $factory(...$this->resolveArguments($definition->getArguments()));
+            return $factory(...$this->resolveArguments($serviceDefinition->getArguments()));
         };
     }
 
     /**
-     * @param ServiceDefinition $definition
-     *
      * @return Closure
      */
-    private function createAliasFactory(ServiceDefinition $definition)
+    private function createAliasFactory(ServiceDefinition $serviceDefinition)
     {
-        return function () use ($definition) {
-            return $this->container[$definition->getClass()];
-        };
+        return fn () => $this->container[$serviceDefinition->getClass()];
     }
 
     /**
-     * @param ServiceDefinition $definition
-     *
      * @return Closure
      */
-    private function createInstanceFactory(ServiceDefinition $definition)
+    private function createInstanceFactory(ServiceDefinition $serviceDefinition)
     {
-        return function () use ($definition) {
-            $className = $definition->getClass();
-            $instance  = new $className(...$this->resolveArguments($definition->getArguments()));
+        return function () use ($serviceDefinition): object {
+            $className = $serviceDefinition->getClass();
+            $instance  = new $className(...$this->resolveArguments($serviceDefinition->getArguments()));
 
-            foreach ($definition->getMethods() as $name => $args) {
+            foreach ($serviceDefinition->getMethods() as $name => $args) {
                 $instance->$name(...$this->resolveArguments($args));
             }
 
@@ -138,26 +137,16 @@ final class PimpleContainerAdapter implements ContainerAdapter
         };
     }
 
-    /**
-     * @param InflectorDefinition $definition
-     *
-     * @return Closure
-     */
-    private function createInflector(InflectorDefinition $definition)
+    private function createInflector(InflectorDefinition $inflectorDefinition): callable
     {
-        return function ($subject) use ($definition) {
-            foreach ($definition->getMethods() as $method => $arguments) {
+        return function ($subject) use ($inflectorDefinition): void {
+            foreach ($inflectorDefinition->getMethods() as $method => $arguments) {
                 $subject->$method(...$this->resolveArguments($arguments));
             }
         };
     }
 
-    /**
-     * @param Closure $factory
-     *
-     * @return Closure
-     */
-    private function applyInflectors(Closure $factory)
+    private function applyInflectors(Closure $factory): callable
     {
         return function () use ($factory) {
             $instance = $factory();
@@ -173,11 +162,11 @@ final class PimpleContainerAdapter implements ContainerAdapter
     }
 
     /**
-     * @param array $arguments
+     * @param array<mixed> $arguments
      *
-     * @return array
+     * @return array<mixed>
      */
-    private function resolveArguments(array $arguments)
+    private function resolveArguments(array $arguments): array
     {
         return array_map(
             function ($argument) {
@@ -189,11 +178,7 @@ final class PimpleContainerAdapter implements ContainerAdapter
                     return $this->container;
                 }
 
-                if (isset($this->container[$argument])) {
-                    return $this->container[$argument];
-                }
-
-                return $argument;
+                return $this->container[$argument] ?? $argument;
             },
             $arguments
         );

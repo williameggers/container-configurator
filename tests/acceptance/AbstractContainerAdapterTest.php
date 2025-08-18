@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\acceptance;
 
 use Interop\Container\ContainerInterface;
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use tests\support\TestFileCreator;
 use TomPHP\ContainerConfigurator\Configurator;
 
-abstract class AbstractContainerAdapterTest extends PHPUnit_Framework_TestCase
+abstract class AbstractContainerAdapterTest extends TestCase
 {
     use SupportsApplicationConfig;
     use SupportsServiceConfig;
@@ -19,7 +21,7 @@ abstract class AbstractContainerAdapterTest extends PHPUnit_Framework_TestCase
      */
     protected $container;
 
-    public function testItCanBeConfiguredFromAFile()
+    public function testItCanBeConfiguredFromAFile(): void
     {
         $config = ['example-key' => 'example-value'];
 
@@ -29,10 +31,10 @@ abstract class AbstractContainerAdapterTest extends PHPUnit_Framework_TestCase
             ->configFromFile($this->getTestPath('config.json'))
             ->to($this->container);
 
-        assertSame('example-value', $this->container->get('config.example-key'));
+        $this->assertSame('example-value', $this->container->get('config.example-key'));
     }
 
-    public function testItCanBeConfiguredFromFiles()
+    public function testItCanBeConfiguredFromFiles(): void
     {
         $config = ['example-key' => 'example-value'];
 
@@ -42,10 +44,10 @@ abstract class AbstractContainerAdapterTest extends PHPUnit_Framework_TestCase
             ->configFromFiles($this->getTestPath('*'))
             ->to($this->container);
 
-        assertSame('example-value', $this->container->get('config.example-key'));
+        $this->assertSame('example-value', $this->container->get('config.example-key'));
     }
 
-    public function testItAddToConfigUsingFiles()
+    public function testItAddToConfigUsingFiles(): void
     {
         $config = ['keyB' => 'valueB'];
 
@@ -56,7 +58,7 @@ abstract class AbstractContainerAdapterTest extends PHPUnit_Framework_TestCase
             ->configFromFiles($this->getTestPath('*'))
             ->to($this->container);
 
-        assertSame('valueA', $this->container->get('config.keyA'));
-        assertSame('valueB', $this->container->get('config.keyB'));
+        $this->assertSame('valueA', $this->container->get('config.keyA'));
+        $this->assertSame('valueB', $this->container->get('config.keyB'));
     }
 }

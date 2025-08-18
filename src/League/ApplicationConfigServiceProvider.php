@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\League;
 
 use Assert\Assertion;
@@ -12,56 +14,60 @@ use TomPHP\ContainerConfigurator\ApplicationConfig;
  */
 final class ApplicationConfigServiceProvider extends AbstractServiceProvider
 {
-    /**
-     * @var ApplicationConfig
-     */
-    private $config;
+    private readonly string $prefix;
 
     /**
-     * @var string
+     * @var array<string>
      */
-    private $prefix;
+    private readonly array $provides;
 
     /**
-     * @param ApplicationConfig $config
-     * @param string            $prefix
-     *
      * @throws InvalidArgumentException
      */
-    public function __construct(ApplicationConfig $config, $prefix)
-    {
+    public function __construct(/**
+         * @var ApplicationConfig<int|string,mixed>
+         */
+        private readonly ApplicationConfig $applicationConfig,
+        string $prefix
+    ) {
         Assertion::string($prefix);
 
         $this->prefix   = $prefix;
-        $this->config   = $config;
-        $this->provides = array_map(
-            function ($key) {
-                return $this->keyPrefix() . $key;
-            },
-            $config->getKeys()
-        );
+        $this->provides = array_merge(array_map(
+            fn (int|string $key): string => $this->keyPrefix() . $key,
+            $this->applicationConfig->getKeys()
+        ), [$this->prefix]);
     }
 
-    public function register()
+    public function provides(string $id): bool
+    {
+        return in_array($id, $this->provides);
+    }
+
+    public function register(): void
     {
         $prefix = $this->keyPrefix();
 
-        foreach ($this->config as $key => $value) {
-            $this->container->share($prefix . $key, function () use ($value) {
-                return $value;
-            });
+        if ($prefix !== '' && $prefix !== '0') {
+            $this->container?->addShared($this->prefix, fn (): array => $this->applicationConfig->asArray());
+        }
+
+        foreach ($this->applicationConfig as $key => $value) {
+            // @phpstan-ignore-next-line
+            if (!is_string($key) && !is_int($key) && !($key instanceof \Stringable)) {
+                continue;
+            }
+
+            $this->container?->addShared($prefix . $key, fn (): mixed => $value);
         }
     }
 
-    /**
-     * @return string
-     */
-    private function keyPrefix()
+    private function keyPrefix(): string
     {
-        if (empty($this->prefix)) {
+        if ($this->prefix === '' || $this->prefix === '0') {
             return '';
         }
 
-        return $this->prefix . $this->config->getSeparator();
+        return $this->prefix . $this->applicationConfig->getSeparator();
     }
 }

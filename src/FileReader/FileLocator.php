@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TomPHP\ContainerConfigurator\FileReader;
 
 use Assert\Assertion;
@@ -11,16 +13,14 @@ use InvalidArgumentException;
 final class FileLocator
 {
     /**
-     * @param string $pattern
-     *
      * @throws InvalidArgumentException
      *
      * @return string[]
      */
-    public function locate($pattern)
+    public function locate(string $pattern): array
     {
         Assertion::string($pattern);
 
-        return glob($pattern, GLOB_BRACE);
+        return glob($pattern, GLOB_BRACE) ?: [];
     }
 }

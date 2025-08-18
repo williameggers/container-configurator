@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\acceptance;
 
 use tests\mocks\ExampleClass;
@@ -9,7 +11,7 @@ use TomPHP\ContainerConfigurator\Configurator;
 
 trait SupportsServiceConfig
 {
-    public function testItAddsServicesToTheContainer()
+    public function testItAddsServicesToTheContainer(): void
     {
         $config = [
             'di' => [
@@ -25,10 +27,10 @@ trait SupportsServiceConfig
             ->configFromArray($config)
             ->to($this->container);
 
-        assertInstanceOf(ExampleClass::class, $this->container->get('example_class'));
+        $this->assertInstanceOf(ExampleClass::class, $this->container->get('example_class'));
     }
 
-    public function testItAddsServicesToTheContainerForADifferentConfigKey()
+    public function testItAddsServicesToTheContainerForADifferentConfigKey(): void
     {
         $config = [
             'di' => [
@@ -43,10 +45,10 @@ trait SupportsServiceConfig
             ->withSetting(Configurator::SETTING_SERVICES_KEY, 'di')
             ->to($this->container);
 
-        assertInstanceOf(ExampleClass::class, $this->container->get('example_class'));
+        $this->assertInstanceOf(ExampleClass::class, $this->container->get('example_class'));
     }
 
-    public function testItCreatesUniqueServiceInstancesByDefault()
+    public function testItCreatesUniqueServiceInstancesByDefault(): void
     {
         $config = [
             'di' => [
@@ -66,10 +68,10 @@ trait SupportsServiceConfig
         $instance1 = $this->container->get('example_class');
         $instance2 = $this->container->get('example_class');
 
-        assertNotSame($instance1, $instance2);
+        $this->assertNotSame($instance1, $instance2);
     }
 
-    public function testItCanCreateSingletonServiceInstances()
+    public function testItCanCreateSingletonServiceInstances(): void
     {
         $config = [
             'di' => [
@@ -89,10 +91,10 @@ trait SupportsServiceConfig
         $instance1 = $this->container->get('example_class');
         $instance2 = $this->container->get('example_class');
 
-        assertSame($instance1, $instance2);
+        $this->assertSame($instance1, $instance2);
     }
 
-    public function testItCanCreateSingletonServiceInstancesByDefault()
+    public function testItCanCreateSingletonServiceInstancesByDefault(): void
     {
         $config = [
             'di' => [
@@ -112,10 +114,10 @@ trait SupportsServiceConfig
         $instance1 = $this->container->get('example_class');
         $instance2 = $this->container->get('example_class');
 
-        assertSame($instance1, $instance2);
+        $this->assertSame($instance1, $instance2);
     }
 
-    public function testItCanCreateUniqueServiceInstancesWhenSingletonIsDefault()
+    public function testItCanCreateUniqueServiceInstancesWhenSingletonIsDefault(): void
     {
         $config = [
             'di' => [
@@ -136,10 +138,10 @@ trait SupportsServiceConfig
         $instance1 = $this->container->get('example_class');
         $instance2 = $this->container->get('example_class');
 
-        assertNotSame($instance1, $instance2);
+        $this->assertNotSame($instance1, $instance2);
     }
 
-    public function testItAddsConstructorArguments()
+    public function testItAddsConstructorArguments(): void
     {
         $config = [
             'di' => [
@@ -161,10 +163,10 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_class');
 
-        assertEquals(['arg1', 'arg2'], $instance->getConstructorArgs());
+        $this->assertEquals(['arg1', 'arg2'], $instance->getConstructorArgs());
     }
 
-    public function testItResolvesConstructorArgumentsIfTheyAreServiceNames()
+    public function testItResolvesConstructorArgumentsIfTheyAreServiceNames(): void
     {
         $config = [
             'arg1' => 'value1',
@@ -188,10 +190,10 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_class');
 
-        assertEquals(['value1', 'value2'], $instance->getConstructorArgs());
+        $this->assertEquals(['value1', 'value2'], $instance->getConstructorArgs());
     }
 
-    public function testItUsesTheStringIfConstructorArgumentsAreClassNames()
+    public function testItUsesTheStringIfConstructorArgumentsAreClassNames(): void
     {
         $config = [
             'di' => [
@@ -213,10 +215,10 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_class');
 
-        assertEquals([ExampleClass::class, 'arg2'], $instance->getConstructorArgs());
+        $this->assertEquals([ExampleClass::class, 'arg2'], $instance->getConstructorArgs());
     }
 
-    public function testItUsesComplexConstructorArguments()
+    public function testItUsesComplexConstructorArguments(): void
     {
         $config = [
             'di' => [
@@ -238,10 +240,10 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_class');
 
-        assertEquals([['example_array'], new \stdClass()], $instance->getConstructorArgs());
+        $this->assertEquals([['example_array'], new \stdClass()], $instance->getConstructorArgs());
     }
 
-    public function testItCallsSetterMethods()
+    public function testItCallsSetterMethods(): void
     {
         $config = [
             'di' => [
@@ -262,10 +264,10 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_class');
 
-        assertEquals('the value', $instance->getValue());
+        $this->assertEquals('the value', $instance->getValue());
     }
 
-    public function testItResolvesSetterMethodArgumentsIfTheyAreServiceNames()
+    public function testItResolvesSetterMethodArgumentsIfTheyAreServiceNames(): void
     {
         $config = [
             'arg' => 'value',
@@ -287,10 +289,10 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_class');
 
-        assertEquals('value', $instance->getValue());
+        $this->assertEquals('value', $instance->getValue());
     }
 
-    public function testItUsesTheStringIffSetterMethodArgumentsAreClassNames()
+    public function testItUsesTheStringIffSetterMethodArgumentsAreClassNames(): void
     {
         $config = [
             'di' => [
@@ -311,10 +313,10 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_class');
 
-        assertSame(ExampleClass::class, $instance->getValue());
+        $this->assertSame(ExampleClass::class, $instance->getValue());
     }
 
-    public function testIsCreatesAServiceThroughAFactoryClass()
+    public function testIsCreatesAServiceThroughAFactoryClass(): void
     {
         $config = [
             'class_name' => ExampleClassWithArgs::class,
@@ -337,11 +339,11 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_service');
 
-        assertInstanceOf(ExampleClassWithArgs::class, $instance);
-        assertSame(['example_argument'], $instance->getConstructorArgs());
+        $this->assertInstanceOf(ExampleClassWithArgs::class, $instance);
+        $this->assertSame(['example_argument'], $instance->getConstructorArgs());
     }
 
-    public function testItCanCreateAServiceAlias()
+    public function testItCanCreateAServiceAlias(): void
     {
         $config = [
             'di' => [
@@ -361,10 +363,10 @@ trait SupportsServiceConfig
             ->configFromArray($config)
             ->to($this->container);
 
-        assertSame($this->container->get('example_class'), $this->container->get('example_alias'));
+        $this->assertSame($this->container->get('example_class'), $this->container->get('example_alias'));
     }
 
-    public function testItInjectsTheContainerAsAConstructorDependency()
+    public function testItInjectsTheContainerAsAConstructorDependency(): void
     {
         $config = [
             'di' => [
@@ -383,10 +385,10 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_service');
 
-        assertSame([$this->container], $instance->getConstructorArgs());
+        $this->assertSame([$this->container], $instance->getConstructorArgs());
     }
 
-    public function testItInjectsTheContainerAsAMethodDependency()
+    public function testItInjectsTheContainerAsAMethodDependency(): void
     {
         $config = [
             'di' => [
@@ -407,10 +409,10 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_service');
 
-        assertSame($this->container, $instance->getValue());
+        $this->assertSame($this->container, $instance->getValue());
     }
 
-    public function testItInjectsTheContainerAsFactoryDependency()
+    public function testItInjectsTheContainerAsFactoryDependency(): void
     {
         $config = [
             'class_name' => ExampleClassWithArgs::class,
@@ -433,6 +435,6 @@ trait SupportsServiceConfig
 
         $instance = $this->container->get('example_service');
 
-        assertSame([$this->container], $instance->getConstructorArgs());
+        $this->assertSame([$this->container], $instance->getConstructorArgs());
     }
 }

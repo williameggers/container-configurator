@@ -1,31 +1,33 @@
 <?php
 
+declare(strict_types=1);
+
 namespace tests\unit\TomPHP\ContainerConfigurator;
 
-use PHPUnit_Framework_TestCase;
+use PHPUnit\Framework\TestCase;
 use TomPHP\ContainerConfigurator\ApplicationConfig;
 
-final class ApplicationConfigIteratorTest extends PHPUnit_Framework_TestCase
+final class ApplicationConfigIteratorTest extends TestCase
 {
-    public function testItIteratesOverSimpleConfigValues()
+    public function testItIteratesOverSimpleConfigValues(): void
     {
-        $iterator = new ApplicationConfig([
+        $applicationConfig = new ApplicationConfig([
             'keyA'   => 'valueA',
             'keyB'   => 'valueB',
         ]);
 
-        assertEquals(
+        $this->assertSame(
             [
                 'keyA'   => 'valueA',
                 'keyB'   => 'valueB',
             ],
-            iterator_to_array($iterator)
+            iterator_to_array($applicationConfig)
         );
     }
 
-    public function testItIteratesRecursively()
+    public function testItIteratesRecursively(): void
     {
-        $iterator = new ApplicationConfig([
+        $applicationConfig = new ApplicationConfig([
             'group1' => [
                 'keyA'   => 'valueA',
             ],
@@ -34,7 +36,7 @@ final class ApplicationConfigIteratorTest extends PHPUnit_Framework_TestCase
             ],
         ]);
 
-        assertEquals(
+        $this->assertSame(
             [
                 'group1' => [
                     'keyA' => 'valueA',
@@ -45,13 +47,13 @@ final class ApplicationConfigIteratorTest extends PHPUnit_Framework_TestCase
                 ],
                 'group2.keyB' => 'valueB',
             ],
-            iterator_to_array($iterator)
+            iterator_to_array($applicationConfig)
         );
     }
 
-    public function testItGoesMultipleLevels()
+    public function testItGoesMultipleLevels(): void
     {
-        $iterator = new ApplicationConfig([
+        $applicationConfig = new ApplicationConfig([
             'group1' => [
                 'keyA'   => 'valueA',
                 'group2' => [
@@ -60,7 +62,7 @@ final class ApplicationConfigIteratorTest extends PHPUnit_Framework_TestCase
             ],
         ]);
 
-        assertEquals(
+        $this->assertSame(
             [
                 'group1' => [
                     'keyA'   => 'valueA',
@@ -74,13 +76,13 @@ final class ApplicationConfigIteratorTest extends PHPUnit_Framework_TestCase
                 ],
                 'group1.group2.keyB' => 'valueB',
             ],
-            iterator_to_array($iterator)
+            iterator_to_array($applicationConfig)
         );
     }
 
-    public function testItRewinds()
+    public function testItRewinds(): void
     {
-        $iterator = new ApplicationConfig([
+        $applicationConfig = new ApplicationConfig([
             'group1' => [
                 'keyA'   => 'valueA',
                 'keyB'   => 'valueB',
@@ -88,11 +90,11 @@ final class ApplicationConfigIteratorTest extends PHPUnit_Framework_TestCase
             ],
         ]);
 
-        next($iterator);
-        next($iterator);
-        next($iterator);
+        $applicationConfig->getIterator()->next();
+        $applicationConfig->getIterator()->next();
+        $applicationConfig->getIterator()->next();
 
-        assertEquals(
+        $this->assertSame(
             [
                 'group1' => [
                     'keyA'   => 'valueA',
@@ -103,26 +105,26 @@ final class ApplicationConfigIteratorTest extends PHPUnit_Framework_TestCase
                 'group1.keyB' => 'valueB',
                 'group1.keyC' => 'valueC',
             ],
-            iterator_to_array($iterator)
+            iterator_to_array($applicationConfig)
         );
     }
 
-    public function testItUsesADifferentSeparator()
+    public function testItUsesADifferentSeparator(): void
     {
-        $iterator = new ApplicationConfig([
+        $applicationConfig = new ApplicationConfig([
             'group1' => [
                 'keyA'   => 'valueA',
             ],
         ], '->');
 
-        assertEquals(
+        $this->assertSame(
             [
                 'group1' => [
                     'keyA' => 'valueA',
                 ],
                 'group1->keyA' => 'valueA',
             ],
-            iterator_to_array($iterator)
+            iterator_to_array($applicationConfig)
         );
     }
 }

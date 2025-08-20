@@ -32,6 +32,7 @@ final class ApplicationConfigServiceProvider extends AbstractServiceProvider
     ) {
         Assertion::string($prefix);
 
+        $this->identifier = self::class . ($prefix !== '' ? $prefix : uniqid());
         $this->prefix   = $prefix;
         $this->provides = array_merge(array_map(
             fn (int|string $key): string => $this->keyPrefix() . $key,

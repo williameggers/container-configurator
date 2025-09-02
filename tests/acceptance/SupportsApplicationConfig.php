@@ -72,4 +72,64 @@ trait SupportsApplicationConfig
 
         $this->assertEquals('valueA', $this->container->get('keyA'));
     }
+
+    public function testItAddsMultipleConfiguratorsToTheContainer(): void
+    {
+        Configurator::apply()
+            ->configFromArray(['keyA' => 'valueA'])
+            ->withSetting(Configurator::SETTING_PREFIX, 'a')
+            ->to($this->container);
+
+        Configurator::apply()
+            ->configFromArray(['keyB' => 'valueB'])
+            ->withSetting(Configurator::SETTING_PREFIX, 'b')
+            ->to($this->container);
+
+        $this->assertEquals('valueA', $this->container->get('a.keyA'));
+        $this->assertEquals('valueB', $this->container->get('b.keyB'));
+    }
+
+    public function testItAddsMultipleConfiguratorsToTheContainerWithoutPrefixes(): void
+    {
+        Configurator::apply()
+            ->configFromArray(['keyA' => 'valueA'])
+            ->withSetting(Configurator::SETTING_PREFIX, '')
+            ->to($this->container);
+
+        Configurator::apply()
+            ->configFromArray(['keyB' => 'valueB'])
+            ->withSetting(Configurator::SETTING_PREFIX, '')
+            ->to($this->container);
+
+        $this->assertEquals('valueA', $this->container->get('keyA'));
+        $this->assertEquals('valueB', $this->container->get('keyB'));
+    }
+
+    public function testItAddsMultipleConfiguratorsToTheContainerWithAndWithoutPrefixes(): void
+    {
+        Configurator::apply()
+            ->configFromArray(['keyA' => 'valueA'])
+            ->withSetting(Configurator::SETTING_PREFIX, '')
+            ->to($this->container);
+
+        Configurator::apply()
+            ->configFromArray(['keyB' => 'valueB'])
+            ->withSetting(Configurator::SETTING_PREFIX, '')
+            ->to($this->container);
+
+        Configurator::apply()
+            ->configFromArray(['keyC' => 'valueC'])
+            ->withSetting(Configurator::SETTING_PREFIX, 'c')
+            ->to($this->container);
+
+        Configurator::apply()
+            ->configFromArray(['keyD' => 'valueD'])
+            ->withSetting(Configurator::SETTING_PREFIX, 'd')
+            ->to($this->container);
+
+        $this->assertEquals('valueA', $this->container->get('keyA'));
+        $this->assertEquals('valueB', $this->container->get('keyB'));
+        $this->assertEquals('valueC', $this->container->get('c.keyC'));
+        $this->assertEquals('valueD', $this->container->get('d.keyD'));
+    }
 }
